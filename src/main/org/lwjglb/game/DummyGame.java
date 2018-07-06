@@ -6,9 +6,6 @@ import org.joml.Vector3f;
 import static org.lwjgl.assimp.Assimp.aiImportFile;
 import static org.lwjgl.glfw.GLFW.*;
 
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.assimp.AIMetaData;
-import org.lwjgl.assimp.AIScene;
 import org.lwjglb.engine.GameItem;
 import org.lwjglb.engine.IGameLogic;
 import org.lwjglb.engine.MouseInput;
@@ -165,12 +162,16 @@ public class DummyGame implements IGameLogic {
         //Mesh mesh = new Mesh(p,t,p,i);
 
 
-        Mesh mesh = MyOBJLoader.loadMesh("/models/shere.obj");
-        Texture texture = new Texture("/textures/pyramid.png");
+        Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
+        //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/CharacterRunning.dae");
+        Texture texture = new Texture("/textures/Untitled.png");
+        //Texture texture = new Texture("/textures/diffuse.png");
         mesh.setTexture(texture);
         GameItem gameItem = new GameItem(mesh);
         gameItem.setScale(0.5f);
         gameItem.setPosition(-1, -1, -2);
+
+        //AnimatedMesh amesh = DAELoader.loadAnimatedMesh("src/main/resources/models/CharacterRunning.dae");
 
 
         /*

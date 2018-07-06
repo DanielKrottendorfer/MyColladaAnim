@@ -12,5 +12,6 @@
     <orderEntry type="library" name="org.joml:joml:1.9.10-SNAPSHOT" level="project" />
     <orderEntry type="library" name="PNGDecoder" level="project" />
     <orderEntry type="library" name="sax" level="project" />
+    <orderEntry type="library" name="jdom-2.0.6-contrib" level="project" />
   </component>
 </module>

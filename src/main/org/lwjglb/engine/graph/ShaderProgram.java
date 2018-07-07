@@ -1,6 +1,7 @@
 package org.lwjglb.engine.graph;
 
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.joml.Matrix4f;
@@ -39,6 +40,18 @@ public class ShaderProgram {
             // Dump the matrix into a float buffer
             FloatBuffer fb = stack.mallocFloat(16);
             value.get(fb);
+            glUniformMatrix4fv(uniforms.get(uniformName), false, fb);
+        }
+    }
+    public void setUniform(String uniformName, Matrix4f[] values) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            int len =values.length;
+            FloatBuffer fb = stack.mallocFloat(16*len);
+
+            for(int i = 0;i<len;i++){
+                values[i].get(16*i,fb);
+            }
+
             glUniformMatrix4fv(uniforms.get(uniformName), false, fb);
         }
     }
@@ -117,4 +130,5 @@ public class ShaderProgram {
             glDeleteProgram(programId);
         }
     }
+
 }

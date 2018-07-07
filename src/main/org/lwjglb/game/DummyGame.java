@@ -11,6 +11,7 @@ import org.lwjglb.engine.IGameLogic;
 import org.lwjglb.engine.MouseInput;
 import org.lwjglb.engine.Window;
 import org.lwjglb.engine.graph.*;
+import org.lwjglb.engine.graph.Animation.AnimatedModel;
 
 public class DummyGame implements IGameLogic {
 
@@ -38,158 +39,21 @@ public class DummyGame implements IGameLogic {
     public void init(Window window) throws Exception {
         renderer.init(window);
 
-        //Mesh mesh = OBJLoader.loadMesh("/models/bunny.obj");
 
-
-
-        /*
-
-        float[] p={
-
-                //1
-                1.0f,1.0f,1.0f,
-                //2
-                3.0f,1.0f,1.0f,
-                //3
-                3.0f,1.0f,3.0f,
-                //4
-                1.0f,1.0f,3.0f,
-                //5
-                2.0f,3.0f,2.0f,
-
-
-                1.0f,1.0f,1.0f,
-                3.0f,1.0f,1.0f,
-                2.0f,3.0f,2.0f,
-                3.0f,1.0f,1.0f,
-                3.0f,1.0f,3.0f,
-                2.0f,3.0f,2.0f,
-                3.0f,1.0f,3.0f,
-                1.0f,1.0f,3.0f,
-                2.0f,3.0f,2.0f,
-                1.0f,1.0f,3.0f,
-                1.0f,1.0f,1.0f,
-                2.0f,3.0f,2.0f,
-                1.0f,1.0f,1.0f,
-                1.0f,1.0f,3.0f,
-                3.0f,1.0f,1.0f,
-                1.0f,1.0f,3.0f,
-                3.0f,1.0f,3.0f,
-                3.0f,1.0f,1.0f,
-
-
-
-
-        };
-        int[] i=new int[18];
-
-        for(int y=0;y<i.length;y++)
-            i[y]=y;
-
-        float[] t={
-                /*
-                //0
-                0.0f,1.0f,
-                //1
-                1.0f/6.0f,0.0f,
-                //2
-                1.0f/3.0f,1.0f,
-                //3
-                1.0f/2.0f,0.0f,
-                //4
-                2.0f/3.0f,1.0f,
-                //5
-                5.0f/6.0f,0.0f,
-                //6
-                1.0f,1.0f
-
-
-                0.0f,1.0f,
-                1.0f/6.0f,0.0f,
-                1.0f/3.0f,1.0f,
-                1.0f/6.0f,0.0f,
-                1.0f/3.0f,1.0f,
-                1.0f/2.0f,0.0f,
-                1.0f/3.0f,1.0f,
-                2.0f/3.0f,1.0f,
-                1.0f/2.0f,0.0f,
-                2.0f/3.0f,1.0f,
-                5.0f/6.0f,0.0f,
-                1.0f/2.0f,0.0f,
-                2.0f/3.0f,1.0f,
-                1.0f,1.0f,
-                5.0f/6.0f,0.0f,
-                2.0f/3.0f,1.0f,
-                1.0f,1.0f,
-                5.0f/6.0f,0.0f,
-
-        };
-        */
-
-        /*
-        Mesh mesh = DAELoader.loadMesh("src/main/resources/models/bendingBlock2.dae");
-        Texture texture = new Texture("/textures/Untitled.png");
-        mesh.setTexture(texture);
-
-        GameItem gameItem = new GameItem(mesh);
-        gameItem.setScale(0.5f);
-        gameItem.setPosition(0, 0, -2);
-        gameItems = new GameItem[]{gameItem};
-
-
-/*
-
-        Mesh mesh = OBJLoader.loadMesh("/models/colorblock.obj");
-        Texture texture = new Texture("/textures/Untitled.png");
-        mesh.setTexture(texture);
-
-        //Mesh mesh = DAELoader.loadMesh("src/main/resources/models/bendingBlock2.dae");
-        GameItem gameItem = new GameItem(mesh);
-        gameItem.setScale(1.5f);
-        gameItem.setPosition(0, 0, -2);
-        gameItems = new GameItem[]{gameItem};
-*/
-    /*
-        Mesh mesh = OBJLoader.loadMesh("/models/cube.obj");
-        Texture texture = new Texture("/textures/grassblock.png");
-        mesh.setTexture(texture);
-        GameItem gameItem = new GameItem(mesh);
-        gameItem.setScale(0.5f);
-        gameItem.setPosition(0, 0, -2);
-        gameItems = new GameItem[]{gameItem};
-        */
-
-        //Mesh mesh = new Mesh(p,t,p,i);
-
-
-        Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
+        AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlock.dae");
+        //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning.dae");
+        //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/CharacterRunning.dae");
         Texture texture = new Texture("/textures/Untitled.png");
         //Texture texture = new Texture("/textures/diffuse.png");
+
+
+
         mesh.setTexture(texture);
         GameItem gameItem = new GameItem(mesh);
         gameItem.setScale(0.5f);
         gameItem.setPosition(-1, -1, -2);
 
-        //AnimatedMesh amesh = DAELoader.loadAnimatedMesh("src/main/resources/models/CharacterRunning.dae");
-
-
-        /*
-        Mesh mesh2 = PlaneGenerator.generate(100, 100, 2000, 2000);
-        mesh2.setColour(new Vector3f(1.0f,0.0f,1.0f));
-        gameItem2 = new GameItem(mesh2);
-        gameItem2.setPosition(-3, -4, -8);
-*/
-/*
-        Mesh mesh1 = MyOBJLoader.loadMesh("/models/shere.obj");
-        Texture textur1 = new Texture("/textures/Untitled.png");
-        mesh1.setTexture(textur1);
-        GameItem gameItem1 = new GameItem(mesh1);
-        gameItem.setScale(0.5f);
-        gameItem.setPosition(0, 0, -1);
-
-        System.out.println(mesh1.getVaoId());
-*/
         gameItems = new GameItem[]{gameItem};
     }
 

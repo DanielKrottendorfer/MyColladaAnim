@@ -5,10 +5,14 @@ import static org.lwjgl.opengl.GL11.*;
 import org.lwjglb.engine.GameItem;
 import org.lwjglb.engine.Utils;
 import org.lwjglb.engine.Window;
+import org.lwjglb.engine.graph.Animation.AnimatedModel;
+import org.lwjglb.engine.graph.Animation.Joint;
 import org.lwjglb.engine.graph.Camera;
 import org.lwjglb.engine.graph.Mesh;
 import org.lwjglb.engine.graph.ShaderProgram;
 import org.lwjglb.engine.graph.Transformation;
+
+import java.util.Arrays;
 
 public class Renderer {
 
@@ -23,26 +27,45 @@ public class Renderer {
 
     private final Transformation transformation;
 
-    private ShaderProgram shaderProgram;
+    private ShaderProgram StaticShaderProgram;
+    private ShaderProgram DynamicShaderProgram;
+
+    private boolean b = true;
 
     public Renderer() {
         transformation = new Transformation();
     }
 
     public void init(Window window) throws Exception {
+        DynamicShaderProgram = new ShaderProgram();
+        DynamicShaderProgram.createVertexShader(Utils.loadResource("/shaders/dynVertex.vs"));
+        DynamicShaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"));
+        DynamicShaderProgram.link();
+        DynamicShaderProgram.createUniform("jointTransformMatrices");
+        DynamicShaderProgram.createUniform("bindPosMatrix");
+        DynamicShaderProgram.createUniform("projectionMatrix");
+
+        // Create uniform for default colour and the flag that controls it
+
+        DynamicShaderProgram.createUniform("colour");
+        DynamicShaderProgram.createUniform("texture_sampler");
+        DynamicShaderProgram.createUniform("modelViewMatrix");
+        DynamicShaderProgram.createUniform("useColour");
+
+
         // Create shader
-        shaderProgram = new ShaderProgram();
-        shaderProgram.createVertexShader(Utils.loadResource("/shaders/vertex.vs"));
-        shaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"));
-        shaderProgram.link();
+        StaticShaderProgram = new ShaderProgram();
+        StaticShaderProgram.createVertexShader(Utils.loadResource("/shaders/statVertex.vs"));
+        StaticShaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"));
+        StaticShaderProgram.link();
         
         // Create uniforms for modelView and projection matrices and texture
-        shaderProgram.createUniform("projectionMatrix");
-        shaderProgram.createUniform("modelViewMatrix");
-        shaderProgram.createUniform("texture_sampler");
+        StaticShaderProgram.createUniform("projectionMatrix");
+        StaticShaderProgram.createUniform("modelViewMatrix");
+        StaticShaderProgram.createUniform("texture_sampler");
         // Create uniform for default colour and the flag that controls it
         //shaderProgram.createUniform("colour");
-        shaderProgram.createUniform("useColour");
+        StaticShaderProgram.createUniform("useColour");
     }
 
     public void clear() {
@@ -57,37 +80,73 @@ public class Renderer {
             window.setResized(false);
         }
 
-        gameItems[0].getMesh().getVaoId();
 
-        shaderProgram.bind();
+        gameItems[0].getVaoId();
+
+        StaticShaderProgram.bind();
+        DynamicShaderProgram.bind();
         
         // Update projection Matrix
         Matrix4f projectionMatrix = transformation.getProjectionMatrix(FOV, window.getWidth(), window.getHeight(), Z_NEAR, Z_FAR);
-        shaderProgram.setUniform("projectionMatrix", projectionMatrix);
+        StaticShaderProgram.setUniform("projectionMatrix", projectionMatrix);
+        DynamicShaderProgram.setUniform("projectionMatrix", projectionMatrix);
 
         // Update view Matrix
         Matrix4f viewMatrix = transformation.getViewMatrix(camera);
         
-        shaderProgram.setUniform("texture_sampler", 0);
+        StaticShaderProgram.setUniform("texture_sampler", 0);
+        DynamicShaderProgram.setUniform("texture_sampler", 0);
 
         // Render each gameItem
         for(GameItem gameItem : gameItems) {
-            Mesh mesh = gameItem.getMesh();
-            // Set model view matrix for this item
-            Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
-            shaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
-            // Render the mesh for this game item
-            //shaderProgram.setUniform("colour", mesh.getColour());
-            shaderProgram.setUniform("useColour", mesh.isTextured() ? 0 : 1);
-            mesh.render();
+            if(gameItem.isAnimated()){
+
+                AnimatedModel animModel= gameItem.getAnimatedModel();
+
+                Joint[] joints = animModel.getJoints();
+
+                int jointC = joints.length;
+
+                Matrix4f[] jointTransforms = new Matrix4f[jointC];
+                Matrix4f[] bindPosM = new Matrix4f[jointC];
+
+                int keyframe = 2;
+
+
+
+                for(int i = 0;i<jointC;i++){
+                    jointTransforms[i]= joints[i].jointKeyFPositionsTransformM[keyframe];
+                    bindPosM[i] = joints[i].jointBindPositionTransformM;
+                }
+                //System.out.println("____________________________________________________________________________");
+
+                //System.out.println(Arrays.toString(jointTransforms));
+
+                DynamicShaderProgram.setUniform("jointTransformMatrices",jointTransforms);
+                DynamicShaderProgram.setUniform("bindPosMatrix",bindPosM);
+
+                Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
+                DynamicShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+                DynamicShaderProgram.setUniform("useColour", animModel.isTextured() ? 0 : 1);
+                animModel.render();
+            }else {
+                Mesh mesh = gameItem.getMesh();
+                // Set model view matrix for this item
+                Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
+                StaticShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+                // Render the mesh for this game item
+                //shaderProgram.setUniform("colour", mesh.getColour());
+                StaticShaderProgram.setUniform("useColour", mesh.isTextured() ? 0 : 1);
+                mesh.render();
+            }
         }
 
-        shaderProgram.unbind();
+        StaticShaderProgram.unbind();
     }
 
     public void cleanup() {
-        if (shaderProgram != null) {
-            shaderProgram.cleanup();
+        if (StaticShaderProgram != null) {
+            StaticShaderProgram.cleanup();
         }
     }
 }

@@ -6,8 +6,6 @@ import java.util.Arrays;
 
 public class Joint {
 
-    public Matrix4f bindPosM;
-
     public Matrix4f jointBindPositionTransformM;
     public Matrix4f jointKeyFPositionsTransformM[];
 
@@ -56,6 +54,8 @@ public class Joint {
 
     }
 
+
+
     public int getIndex() {
         return index;
     }
@@ -85,7 +85,6 @@ public class Joint {
     }
 
     public void printTree(String indent){
-        System.out.println(indent+this.index+" "+this.name+"\n"+Arrays.toString(timestamps));
         if(children!=null){
             for (Joint child:children)
                 child.printTree(indent + "|");

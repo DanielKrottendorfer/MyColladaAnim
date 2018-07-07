@@ -6,6 +6,7 @@ import org.jdom2.input.DOMBuilder;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import org.lwjgl.system.CallbackI;
 import org.lwjglb.engine.graph.Animation.AnimatedModel;
 import org.lwjglb.engine.graph.Animation.Joint;
 import org.lwjglb.engine.graph.Animation.SkinPoint;
@@ -22,6 +23,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class ColladaLoader {
+
+    private static final int maxJoint = 3;
+
     public static AnimatedModel loadAnimatedModel(String path) {
 
 
@@ -30,14 +34,6 @@ public class ColladaLoader {
 
 
         Element rootNode = document.getRootElement();
-
-        List<Element> librarys = rootNode.getChildren();
-
-        String[] libNames;
-        libNames = new String[librarys.size()];
-
-        int[] libI;
-        libI = new int[librarys.size()];
 
         Element geometries = findElement(rootNode,"library_geometries");
         Element animation = findElement(rootNode,"library_animations");
@@ -77,6 +73,18 @@ public class ColladaLoader {
 
         addJointTransforms(rootJoint,animation);
 
+        multiplyMatrices(rootJoint);
+
+        Joint[] joints = generateJointArray(rootJoint);
+
+        temp = findChildByID(controllers,"Armature_Cube-skin-bind_poses-array").getValue();
+
+        Matrix4f[] bindPos = Matrix4fArrayParser(temp.split(" "));
+
+        for(int i = 0;i<bindPos.length;i++){
+            joints[i].jointBindPositionTransformM=bindPos[i];
+        }
+
 
         /*
                 LOAD  CONTROLLER DATA
@@ -93,11 +101,45 @@ public class ColladaLoader {
 
         SkinPoint[] points= generateSkinPoints(vertecis,weights,vC,v);
 
-        for(SkinPoint p:points)
-            System.out.println(p);
+        int faceAttributes = findChildByName(geometries,"triangles").getChildren().size()-1;
 
-        return null;
+
+
+        return reorderDynamicM(points,normals,uvMap,faces,faceAttributes,joints);
     }
+
+    private static void multiplyMatrices(Joint rootJoint) {
+        if(rootJoint.hasChildren()) {
+            for (Joint child : rootJoint.getChildren()) {
+                for (int i = 0; i < child.jointKeyFPositionsTransformM.length; i++) {
+                    child.jointKeyFPositionsTransformM[i].mul(rootJoint.jointKeyFPositionsTransformM[i]);
+                }
+                multiplyMatrices(child);
+            }
+        }
+    }
+
+    private static Joint[] generateJointArray(Joint rootJoint) {
+        ArrayList<Joint> jl = new ArrayList<>();
+
+        for(int i = 0;true;i++){
+            Joint j = rootJoint.findJoint(i);
+            if(j==null) {
+                break;
+            }
+
+            jl.add(j);
+        }
+
+        Joint[] jr = new Joint[jl.size()];
+
+        for(int i = 0;i<jr.length;i++){
+            jr[i] = jl.get(i);
+        }
+
+        return jr;
+    }
+
     public static Mesh loadStaticMesh(String path) {
 
 
@@ -107,19 +149,8 @@ public class ColladaLoader {
 
         Element rootNode = document.getRootElement();
 
-        List<Element> librarys = rootNode.getChildren();
-
-        String[] libNames;
-        libNames = new String[librarys.size()];
-
-        int[] libI;
-        libI = new int[librarys.size()];
 
         Element geometries = findElement(rootNode,"library_geometries");
-        Element animation = findElement(rootNode,"library_animations");
-        Element controllers = findElement(rootNode,"library_controllers");
-        Element visual_scenes = findElement(rootNode,"library_visual_scenes");
-
         /*
                     LOAD GEOMETRIE DATA
          */
@@ -142,15 +173,14 @@ public class ColladaLoader {
 
         int faceAttributes = findChildByName(geometries,"triangles").getChildren().size()-1;
 
-        return reorder(vertecis,normals,uvMap,faces,faceAttributes);
+        return reorderStaticM(vertecis,normals,uvMap,faces,faceAttributes);
     }
 
-    private static Mesh reorder(Vector4f[] vertecis, Vector4f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes) {
+    private static Mesh reorderStaticM(Vector4f[] vertecis, Vector4f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes) {
 
         ArrayList<Float> v = new ArrayList<>();
         ArrayList<Float> n = new ArrayList<>();
         ArrayList<Float> t = new ArrayList<>();
-        ArrayList<Float> c = new ArrayList<>();
 
 
         int[] indices = new int[faces.length];
@@ -194,6 +224,93 @@ public class ColladaLoader {
         return new Mesh(positions,texture,normV,indices);
 
     }
+
+    private static AnimatedModel reorderDynamicM(SkinPoint[] skinPoints, Vector4f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes, Joint[] joints) {
+
+        ArrayList<Float> v = new ArrayList<>();
+        ArrayList<Float> w = new ArrayList<>();
+        ArrayList<Integer> m = new ArrayList<>();
+        ArrayList<Float> n = new ArrayList<>();
+        ArrayList<Float> t = new ArrayList<>();
+        ArrayList<Integer> jc = new ArrayList<>();
+
+
+        int[] indices = new int[faces.length];
+
+
+        for(int i = 0;i<faces.length;i+=faceAttributes){
+
+
+            SkinPoint sp=skinPoints[faces[i]];
+
+            Vector4f pos = sp.getPositon();
+
+            v.add(pos.x);
+            v.add(pos.z);
+            v.add(pos.y);
+
+            int jointCount = sp.getJointI().length;
+
+            jc.add(jointCount);
+
+            for(int y = 0;y<jointCount;y++){
+                w.add(sp.getWeights()[y]);
+                m.add(sp.getJointI()[y]);
+                //System.out.println("weight: "+sp.getWeights()[y]);
+                //System.out.println("JT;:    "+sp.getJointI()[y]+"\n");
+            }
+
+            for(int y = jointCount ; y<maxJoint ; y++ ){
+                w.add(0.0f);
+                m.add(-1);
+            }
+
+
+            n.add(normals[faces[i+1]].x);
+            n.add(normals[faces[i+1]].z);
+            n.add(normals[faces[i+1]].y);
+
+            t.add(uvMap[faces[i+2]].x);
+            t.add(1-uvMap[faces[i+2]].y);
+
+            indices[i]=i;
+            indices[i+1]=i+1;
+            indices[i+2]=i+2;
+        }
+
+        float[] positions = new float[v.size()];
+        float[] normV = new float[n.size()];
+        float[] texture = new float[t.size()];
+
+        float[] weights = new float[w.size()];
+        int[] matrixIndices = new int[m.size()];
+        int[] jointCount = new int[jc.size()];
+
+
+        for(int i = 0;i<positions.length;i++){
+            positions[i] = v.get(i);
+        }
+        for(int i = 0;i<normV.length;i++){
+            normV[i] = n.get(i);
+        }
+        for(int i = 0;i<texture.length;i++){
+            texture[i] = t.get(i);
+        }
+        for(int i = 0;i<weights.length;i++){
+            weights[i] = w.get(i);
+        }
+        for(int i = 0;i<matrixIndices.length;i++){
+            matrixIndices[i] = m.get(i);
+        }
+        for(int i = 0;i<jointCount.length;i++){
+            jointCount[i] = jc.get(i);
+        }
+
+        return new AnimatedModel(positions,normV,texture,weights,indices,matrixIndices,joints);
+
+    }
+
+
 
     private static SkinPoint[] generateSkinPoints(Vector4f[] vertecis, float[] weights, int[] vC, int[] v) {
 
@@ -352,7 +469,7 @@ public class ColladaLoader {
         Vector4f[] vr = new Vector4f[len/3];
 
         for(int i = 0,y=0;i<len;i+=3,y++){
-            vr[y]= new Vector4f(Float.parseFloat(temp[i]),Float.parseFloat(temp[i+1]),Float.parseFloat(temp[i+2]),1.0f);
+            vr[y]= new Vector4f(Float.parseFloat(temp[i]),Float.parseFloat(temp[i+1]),Float.parseFloat(temp[i+2]),0.0f);
         }
 
         return vr;
@@ -441,7 +558,7 @@ public class ColladaLoader {
             }
 
 
-            System.out.println(indent+e.getName()+" "+print);
+            //System.out.println(indent+e.getName()+" "+print);
             printTree(e,indent+" ");
         }
 
@@ -455,8 +572,8 @@ public class ColladaLoader {
                 print+=e.getAttributeValue("id");
             }
 
-            if(e.getName().startsWith(name))
-                System.out.println(indent+e.getName()+" "+print);
+            //if(e.getName().startsWith(name))
+                //System.out.println(indent+e.getName()+" "+print);
             printTreeWithName(e,name,indent+" ");
         }
 

@@ -41,14 +41,20 @@ public class Renderer {
         DynamicShaderProgram.createVertexShader(Utils.loadResource("/shaders/dynVertex.vs"));
         DynamicShaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"));
         DynamicShaderProgram.link();
-        DynamicShaderProgram.createUniform("jointTransformMatrices");
-        DynamicShaderProgram.createUniform("bindPosMatrix");
-        DynamicShaderProgram.createUniform("projectionMatrix");
-
         // Create uniform for default colour and the flag that controls it
 
-        DynamicShaderProgram.createUniform("colour");
+        //DynamicShaderProgram.createUniform("colour");
+
+
+        //DynamicShaderProgram.createUniform("jointTransform");
+
+
+        DynamicShaderProgram.createUniform("jointTransformB");
+        DynamicShaderProgram.createUniform("jointTransformM");
+        DynamicShaderProgram.createUniform("jointTransformT");
+
         DynamicShaderProgram.createUniform("texture_sampler");
+        DynamicShaderProgram.createUniform("projectionMatrix");
         DynamicShaderProgram.createUniform("modelViewMatrix");
         DynamicShaderProgram.createUniform("useColour");
 
@@ -81,55 +87,21 @@ public class Renderer {
         }
 
 
-        gameItems[0].getVaoId();
-
         StaticShaderProgram.bind();
-        DynamicShaderProgram.bind();
         
         // Update projection Matrix
         Matrix4f projectionMatrix = transformation.getProjectionMatrix(FOV, window.getWidth(), window.getHeight(), Z_NEAR, Z_FAR);
         StaticShaderProgram.setUniform("projectionMatrix", projectionMatrix);
-        DynamicShaderProgram.setUniform("projectionMatrix", projectionMatrix);
+
 
         // Update view Matrix
         Matrix4f viewMatrix = transformation.getViewMatrix(camera);
         
         StaticShaderProgram.setUniform("texture_sampler", 0);
-        DynamicShaderProgram.setUniform("texture_sampler", 0);
 
         // Render each gameItem
         for(GameItem gameItem : gameItems) {
-            if(gameItem.isAnimated()){
-
-                AnimatedModel animModel= gameItem.getAnimatedModel();
-
-                Joint[] joints = animModel.getJoints();
-
-                int jointC = joints.length;
-
-                Matrix4f[] jointTransforms = new Matrix4f[jointC];
-                Matrix4f[] bindPosM = new Matrix4f[jointC];
-
-                int keyframe = 2;
-
-
-
-                for(int i = 0;i<jointC;i++){
-                    jointTransforms[i]= joints[i].jointKeyFPositionsTransformM[keyframe];
-                    bindPosM[i] = joints[i].jointBindPositionTransformM;
-                }
-                //System.out.println("____________________________________________________________________________");
-
-                //System.out.println(Arrays.toString(jointTransforms));
-
-                DynamicShaderProgram.setUniform("jointTransformMatrices",jointTransforms);
-                DynamicShaderProgram.setUniform("bindPosMatrix",bindPosM);
-
-                Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
-                DynamicShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
-                DynamicShaderProgram.setUniform("useColour", animModel.isTextured() ? 0 : 1);
-                animModel.render();
-            }else {
+            if(!gameItem.isAnimated()){
                 Mesh mesh = gameItem.getMesh();
                 // Set model view matrix for this item
                 Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
@@ -141,12 +113,67 @@ public class Renderer {
             }
         }
 
+
         StaticShaderProgram.unbind();
+
+
+        DynamicShaderProgram.bind();
+
+        // Update projection Matrix
+
+
+        DynamicShaderProgram.setUniform("projectionMatrix", projectionMatrix);
+
+        // Update view Matrix
+
+        DynamicShaderProgram.setUniform("texture_sampler", 0);
+
+        // Render each gameItem
+        for(GameItem gameItem : gameItems) {
+            if(gameItem.isAnimated()) {
+
+                AnimatedModel animModel = gameItem.getAnimatedModel();
+
+                Joint[] joints = animModel.getJoints();
+
+                int jointC = joints.length;
+
+                Matrix4f[] jointTransforms = new Matrix4f[jointC];
+
+                //System.out.println(Arrays.toString(joints));
+
+                for (int i = 0; i < jointC; i++) {
+                    Matrix4f jtf = new Matrix4f(joints[i].jointKeyFPositionsTransformM[1]);
+                    Matrix4f bpm = new Matrix4f(joints[i].jointBindPositionTransformM);
+                    jointTransforms[i] = jtf.mul(bpm);
+                }
+
+                DynamicShaderProgram.setUniform("jointTransformB", jointTransforms[0]);
+                DynamicShaderProgram.setUniform("jointTransformM", jointTransforms[1]);
+                DynamicShaderProgram.setUniform("jointTransformT", jointTransforms[2]);
+
+
+                //DynamicShaderProgram.setUniform("jointTransform", jointTransforms);
+
+                Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
+                DynamicShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+                DynamicShaderProgram.setUniform("useColour", animModel.isTextured() ? 0 : 1);
+
+                animModel.render();
+            }
+        }
+
+        DynamicShaderProgram.unbind();
+
     }
+
 
     public void cleanup() {
         if (StaticShaderProgram != null) {
             StaticShaderProgram.cleanup();
+        }
+        if (DynamicShaderProgram != null) {
+            DynamicShaderProgram.cleanup();
         }
     }
 }

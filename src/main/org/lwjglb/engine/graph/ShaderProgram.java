@@ -7,6 +7,8 @@ import java.util.Map;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import static org.lwjgl.opengl.GL20.*;
+
+import org.joml.Vector4f;
 import org.lwjgl.system.MemoryStack;
 
 public class ShaderProgram {
@@ -45,12 +47,32 @@ public class ShaderProgram {
     }
     public void setUniform(String uniformName, Matrix4f[] values) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
+
             int len =values.length;
+
             FloatBuffer fb = stack.mallocFloat(16*len);
 
+
             for(int i = 0;i<len;i++){
-                values[i].get(16*i,fb);
+
+                Matrix4f bm = new Matrix4f();
+
+                float[] mf = new float[16];
+                values[i].get(mf);
+                Vector4f[] a = new Vector4f[4];
+
+                for(int y = 0;y<4;y++) {
+                    a[y] = new Vector4f(mf[y], mf[y+4], mf[y+8], mf[y+12]);
+                }
+
+
+                Matrix4f m =new Matrix4f(a[0],a[1],a[2],a[3]);
+
+
+
+                m.get(16*i,fb);
             }
+
 
             glUniformMatrix4fv(uniforms.get(uniformName), false, fb);
         }

@@ -54,7 +54,13 @@ public class Joint {
 
     }
 
-
+    @Override
+    public String toString() {
+        return "Joint{" +
+                "index=" + index +
+                ", name='" + name + '\'' +
+                '}';
+    }
 
     public int getIndex() {
         return index;

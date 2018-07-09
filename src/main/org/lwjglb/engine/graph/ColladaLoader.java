@@ -6,11 +6,9 @@ import org.jdom2.input.DOMBuilder;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import org.lwjgl.system.CallbackI;
 import org.lwjglb.engine.graph.Animation.AnimatedModel;
 import org.lwjglb.engine.graph.Animation.Joint;
 import org.lwjglb.engine.graph.Animation.SkinPoint;
-import org.lwjglb.engine.graph.Mesh;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -39,6 +37,7 @@ public class ColladaLoader {
         Element animation = findElement(rootNode,"library_animations");
         Element controllers = findElement(rootNode,"library_controllers");
         Element visual_scenes = findElement(rootNode,"library_visual_scenes");
+
 
         /*
                     LOAD GEOMETRIE DATA
@@ -87,7 +86,7 @@ public class ColladaLoader {
 
 
         /*
-                LOAD  CONTROLLER DATA
+                LOAD  CONTROL DATA
          */
 
         temp = findChildByID(controllers,"Armature_Cube-skin-weights-array").getValue();
@@ -103,20 +102,30 @@ public class ColladaLoader {
 
         int faceAttributes = findChildByName(geometries,"triangles").getChildren().size()-1;
 
-
-
         return reorderDynamicM(points,normals,uvMap,faces,faceAttributes,joints);
     }
 
+
     private static void multiplyMatrices(Joint rootJoint) {
-        if(rootJoint.hasChildren()) {
-            for (Joint child : rootJoint.getChildren()) {
-                for (int i = 0; i < child.jointKeyFPositionsTransformM.length; i++) {
-                    child.jointKeyFPositionsTransformM[i].mul(rootJoint.jointKeyFPositionsTransformM[i]);
+
+        if(rootJoint.getChildren()!=null){
+
+            for(Joint j: rootJoint.getChildren()){
+
+                for(int i = 0; i<j.jointKeyFPositionsTransformM.length;i++){
+                    Matrix4f temp = new Matrix4f(rootJoint.jointKeyFPositionsTransformM[i]);
+
+                    j.jointKeyFPositionsTransformM[i] = temp.mul(j.jointKeyFPositionsTransformM[i]);
+
+
                 }
-                multiplyMatrices(child);
+
+                multiplyMatrices(j);
+
             }
+
         }
+
     }
 
     private static Joint[] generateJointArray(Joint rootJoint) {
@@ -469,7 +478,7 @@ public class ColladaLoader {
         Vector4f[] vr = new Vector4f[len/3];
 
         for(int i = 0,y=0;i<len;i+=3,y++){
-            vr[y]= new Vector4f(Float.parseFloat(temp[i]),Float.parseFloat(temp[i+1]),Float.parseFloat(temp[i+2]),0.0f);
+            vr[y]= new Vector4f(Float.parseFloat(temp[i]),Float.parseFloat(temp[i+1]),Float.parseFloat(temp[i+2]),1.0f);
         }
 
         return vr;

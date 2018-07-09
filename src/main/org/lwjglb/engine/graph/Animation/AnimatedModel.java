@@ -1,14 +1,12 @@
 package org.lwjglb.engine.graph.Animation;
 
 import org.joml.Vector3f;
-import org.lwjgl.system.CallbackI;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjglb.engine.graph.Texture;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -19,9 +17,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
+import static org.lwjgl.opengl.GL30.*;
 
 public class AnimatedModel {
 
@@ -75,6 +71,7 @@ public class AnimatedModel {
             glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW);
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 
+
             // Texture coordinates VBO
             vboId = glGenBuffers();
             vboIdList.add(vboId);
@@ -93,6 +90,7 @@ public class AnimatedModel {
             glBufferData(GL_ARRAY_BUFFER, vecNormalsBuffer, GL_STATIC_DRAW);
             glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
 
+
             // Vertex weight VBO
             vboId = glGenBuffers();
             vboIdList.add(vboId);
@@ -102,6 +100,7 @@ public class AnimatedModel {
             glBufferData(GL_ARRAY_BUFFER, vecWeightBuffer, GL_STATIC_DRAW);
             glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, 0);
 
+
             // Vertex MatrixTransformIndices VBO
             vboId = glGenBuffers();
             vboIdList.add(vboId);
@@ -109,7 +108,9 @@ public class AnimatedModel {
             vecMatIndexBuffer.put(matrixIndices).flip();
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             glBufferData(GL_ARRAY_BUFFER, vecMatIndexBuffer, GL_STATIC_DRAW);
-            glVertexAttribPointer(4, 3, GL_INT, false, 0, 0);
+            glVertexAttribIPointer(4,3,GL_INT,0,0);
+
+
 
 
             // Index VBO
@@ -123,6 +124,21 @@ public class AnimatedModel {
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
+
+/*
+            for(int i = 0,y=0;i<indices.length;i+=3,y+=2){
+                String print = " x "+p[i]+" y "+p[i+1]+" z "+p[i+2]+"\n"
+                        +"tx l"+text[y]+" b "+text[y+1]+"\n"
+                        +"w1 "+weig[i]+" w2 "+weig[i+1]+" w3 "+weig[i+2]+"\n"
+                        +"m1 "+mat[i]+" m2 "+mat[i+1]+" m3 "+mat[i+2]+"\n";
+
+                System.out.println(print);
+            }
+*/
+
+
+
+
         } finally {
             if (posBuffer != null) {
                 MemoryUtil.memFree(posBuffer);

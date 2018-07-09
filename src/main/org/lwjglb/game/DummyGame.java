@@ -44,6 +44,8 @@ public class DummyGame implements IGameLogic {
         //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/CharacterRunning.dae");
+
+
         Texture texture = new Texture("/textures/Untitled.png");
         //Texture texture = new Texture("/textures/diffuse.png");
 

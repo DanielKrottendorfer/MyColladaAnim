@@ -5,26 +5,52 @@ layout (location=0) in vec3 position;
 layout (location=1) in vec2 texCoord;
 layout (location=2) in vec3 vertexNormal;
 layout (location=3) in vec3 weight;
-layout (location=4) in int matrixIndices[3];
+layout (location=4) in ivec3 matrixIndices;
 
 out vec2 outTexCoord;
 
-uniform mat4 jointTransformMatrices[MAX_JOINTS];
-uniform mat4 bindPosMatrix[MAX_JOINTS];
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 jointTransformB;
+uniform mat4 jointTransformM;
+uniform mat4 jointTransformT;
 
 
 void main()
 {
 
-    vec4 fposition = vec4(position.x,position.z,position.y,0.0);
-    vec4 accPosition = vec4(0.0,0.0,0.0,0.0);
+    vec4 accPosition = vec4(0,0,0,0);
 
-    accPosition = accPosition + (((fposition*bindPosMatrix[matrixIndices[0]])*jointTransformMatrices[matrixIndices[0]])*weight.x);
-    accPosition = accPosition + (((fposition*bindPosMatrix[matrixIndices[1]])*jointTransformMatrices[matrixIndices[1]])*weight.y);
-    accPosition = accPosition + (((fposition*bindPosMatrix[matrixIndices[2]])*jointTransformMatrices[matrixIndices[2]])*weight.z);
-
+    for( int i = 0;i<3;i++){
+        float w = 0.0;
+        if(i==0){
+            w = weight.x;
+        }
+        if(i==1){
+            w = weight.y;
+        }
+        if(i==2){
+            w = weight.z;
+        }
+        if(matrixIndices[i]==0&&w>0.0){
+            vec4 fposition = vec4(position.x,position.z,position.y,1.0);
+            fposition = fposition*jointTransformB;
+            fposition = fposition*w;
+            accPosition = accPosition + fposition;
+        }
+        if(matrixIndices[i]==1&&w>0.0){
+             vec4 fposition = vec4(position.x,position.z,position.y,1.0);
+             fposition = fposition*jointTransformM;
+             fposition = fposition*w;
+             accPosition = accPosition + fposition;
+         }
+         if(matrixIndices[i]==2&&w>0.0){
+             vec4 fposition = vec4(position.x,position.z,position.y,1.0);
+             fposition = fposition*jointTransformT;
+             fposition = fposition*w;
+             accPosition = accPosition + fposition;
+         }
+    }
 
     accPosition = vec4(accPosition.x,accPosition.z,accPosition.y,1.0);
 

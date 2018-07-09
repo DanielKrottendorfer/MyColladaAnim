@@ -4,7 +4,7 @@ const int MAX_JOINTS = 50;//max joints allowed in a skeleton
 layout (location=0) in vec3 position;
 layout (location=1) in vec2 texCoord;
 layout (location=2) in vec3 vertexNormal;
-layout (location=3) in float weight[3];
+layout (location=3) in vec3 weight;
 layout (location=4) in ivec3 matrixIndices;
 
 out vec2 outTexCoord;

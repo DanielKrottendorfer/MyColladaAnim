@@ -5,6 +5,7 @@ import org.jdom2.Element;
 import org.jdom2.input.DOMBuilder;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjglb.engine.graph.Animation.AnimatedModel;
 import org.lwjglb.engine.graph.Animation.Joint;
@@ -45,19 +46,18 @@ public class ColladaLoader {
 
         String temp ;
         temp = findChildByID(geometries,"Cube-mesh-positions-array").getValue();
-        Vector4f[] vertecis = Vector4fArrayParser(temp.split(" "));
-
+        Vector3f[] vertecis = Objects.requireNonNull(Vector3fArrayParser(temp.split(" ")));
 
         temp = findChildByID(geometries,"Cube-mesh-normals-array").getValue();
-        Vector4f[] normals = Vector4fArrayParser(temp.split(" "));
+        Vector3f[] normals = Objects.requireNonNull(Vector3fArrayParser(temp.split(" ")));
 
 
         temp = findChildByID(geometries,"Cube-mesh-map-0-array").getValue();
-        Vector2f[] uvMap = Vector2fArrayParser(temp.split(" "));
+        Vector2f[] uvMap = Objects.requireNonNull(Vector2fArrayParser(temp.split(" ")));
 
 
         temp= findChildByName(geometries,"p").getValue();
-        int[] faces = IntArrayParser(temp.split(" "));
+        int[] faces = Objects.requireNonNull(IntArrayParser(temp.split(" ")));
 
 
         /*
@@ -101,6 +101,18 @@ public class ColladaLoader {
         SkinPoint[] points= generateSkinPoints(vertecis,weights,vC,v);
 
         int faceAttributes = findChildByName(geometries,"triangles").getChildren().size()-1;
+
+        /*
+        for (SkinPoint p :points){
+            String s="";
+
+            s = s+"position"+p.getPositon();
+            s = s+"jointIs" + Arrays.toString(p.getJointI());
+            s = s+"weights" + Arrays.toString(p.getWeights());
+            System.out.println(s+"\n");
+
+        }
+        */
 
         return reorderDynamicM(points,normals,uvMap,faces,faceAttributes,joints);
     }
@@ -234,7 +246,8 @@ public class ColladaLoader {
 
     }
 
-    private static AnimatedModel reorderDynamicM(SkinPoint[] skinPoints, Vector4f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes, Joint[] joints) {
+    private static AnimatedModel reorderDynamicM(SkinPoint[] skinPoints, Vector3f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes, Joint[] joints) {
+
 
         ArrayList<Float> v = new ArrayList<>();
         ArrayList<Float> w = new ArrayList<>();
@@ -247,31 +260,30 @@ public class ColladaLoader {
         int[] indices = new int[faces.length];
 
 
+        String print = "";
         for(int i = 0;i<faces.length;i+=faceAttributes){
 
 
             SkinPoint sp=skinPoints[faces[i]];
-
-            Vector4f pos = sp.getPositon();
-
+            Vector3f pos = sp.getPositon();
             v.add(pos.x);
             v.add(pos.z);
             v.add(pos.y);
+
 
             int jointCount = sp.getJointI().length;
 
             jc.add(jointCount);
 
+
             for(int y = 0;y<jointCount;y++){
                 w.add(sp.getWeights()[y]);
                 m.add(sp.getJointI()[y]);
-                //System.out.println("weight: "+sp.getWeights()[y]);
-                //System.out.println("JT;:    "+sp.getJointI()[y]+"\n");
             }
 
             for(int y = jointCount ; y<maxJoint ; y++ ){
                 w.add(0.0f);
-                m.add(-1);
+                m.add(0);
             }
 
 
@@ -286,6 +298,7 @@ public class ColladaLoader {
             indices[i+1]=i+1;
             indices[i+2]=i+2;
         }
+
 
         float[] positions = new float[v.size()];
         float[] normV = new float[n.size()];
@@ -321,7 +334,7 @@ public class ColladaLoader {
 
 
 
-    private static SkinPoint[] generateSkinPoints(Vector4f[] vertecis, float[] weights, int[] vC, int[] v) {
+    private static SkinPoint[] generateSkinPoints(Vector3f[] vertecis, float[] weights, int[] vC, int[] v) {
 
         int len = vertecis.length;
 
@@ -479,6 +492,22 @@ public class ColladaLoader {
 
         for(int i = 0,y=0;i<len;i+=3,y++){
             vr[y]= new Vector4f(Float.parseFloat(temp[i]),Float.parseFloat(temp[i+1]),Float.parseFloat(temp[i+2]),1.0f);
+        }
+
+        return vr;
+    }
+
+    private static Vector3f[] Vector3fArrayParser(String[] temp) {
+
+
+        int len = temp.length;
+        if(len%3>0)
+            return null;
+
+        Vector3f[] vr = new Vector3f[len/3];
+
+        for(int i = 0,y=0;i<len;i+=3,y++){
+            vr[y]= new Vector3f(Float.parseFloat(temp[i]),Float.parseFloat(temp[i+1]),Float.parseFloat(temp[i+2]));
         }
 
         return vr;

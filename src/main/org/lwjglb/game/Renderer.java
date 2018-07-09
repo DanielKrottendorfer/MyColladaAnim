@@ -38,7 +38,7 @@ public class Renderer {
 
     public void init(Window window) throws Exception {
         DynamicShaderProgram = new ShaderProgram();
-        DynamicShaderProgram.createVertexShader(Utils.loadResource("/shaders/dynVertex.vs"));
+        DynamicShaderProgram.createVertexShader(Utils.loadResource("/shaders/dynVertex2.vs"));
         DynamicShaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"));
         DynamicShaderProgram.link();
         // Create uniform for default colour and the flag that controls it
@@ -46,13 +46,13 @@ public class Renderer {
         //DynamicShaderProgram.createUniform("colour");
 
 
-        //DynamicShaderProgram.createUniform("jointTransform");
+        DynamicShaderProgram.createUniform("jointTransform");
 
-
+/*
         DynamicShaderProgram.createUniform("jointTransformB");
         DynamicShaderProgram.createUniform("jointTransformM");
         DynamicShaderProgram.createUniform("jointTransformT");
-
+*/
         DynamicShaderProgram.createUniform("texture_sampler");
         DynamicShaderProgram.createUniform("projectionMatrix");
         DynamicShaderProgram.createUniform("modelViewMatrix");
@@ -146,14 +146,16 @@ public class Renderer {
                     Matrix4f jtf = new Matrix4f(joints[i].jointKeyFPositionsTransformM[1]);
                     Matrix4f bpm = new Matrix4f(joints[i].jointBindPositionTransformM);
                     jointTransforms[i] = jtf.mul(bpm);
+                    //System.out.println(jointTransforms[i]+"\n");
                 }
+                //System.out.println("___________________________________________");
+/*
+                DynamicShaderProgram.setUniform("jointTransformB", jointTransforms[0],true);
+                DynamicShaderProgram.setUniform("jointTransformM", jointTransforms[1],true);
+                DynamicShaderProgram.setUniform("jointTransformT", jointTransforms[2],true);
+*/
 
-                DynamicShaderProgram.setUniform("jointTransformB", jointTransforms[0]);
-                DynamicShaderProgram.setUniform("jointTransformM", jointTransforms[1]);
-                DynamicShaderProgram.setUniform("jointTransformT", jointTransforms[2]);
-
-
-                //DynamicShaderProgram.setUniform("jointTransform", jointTransforms);
+                DynamicShaderProgram.setUniform("jointTransform", jointTransforms);
 
                 Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
                 DynamicShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);

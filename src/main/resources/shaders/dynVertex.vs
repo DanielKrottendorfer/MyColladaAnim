@@ -21,35 +21,27 @@ void main()
 
     vec4 accPosition = vec4(0,0,0,0);
 
-    for( int i = 0;i<3;i++){
-        float w = 0.0;
-        if(i==0){
-            w = weight.x;
-        }
-        if(i==1){
-            w = weight.y;
-        }
-        if(i==2){
-            w = weight.z;
-        }
-        if(matrixIndices[i]==0&&w>0.0){
+    for( int i = 0;i<3;i++)
+    {
+
+        float w = weight[i];
+
             vec4 fposition = vec4(position.x,position.z,position.y,1.0);
+
+        if(matrixIndices[i]==0)
+        {
             fposition = fposition*jointTransformB;
+        }
+        if(matrixIndices[i]==1)
+        {
+             fposition = fposition*jointTransformM;
+         }
+         if(matrixIndices[i]==2)
+         {
+             fposition = fposition*jointTransformT;
+         }
             fposition = fposition*w;
             accPosition = accPosition + fposition;
-        }
-        if(matrixIndices[i]==1&&w>0.0){
-             vec4 fposition = vec4(position.x,position.z,position.y,1.0);
-             fposition = fposition*jointTransformM;
-             fposition = fposition*w;
-             accPosition = accPosition + fposition;
-         }
-         if(matrixIndices[i]==2&&w>0.0){
-             vec4 fposition = vec4(position.x,position.z,position.y,1.0);
-             fposition = fposition*jointTransformT;
-             fposition = fposition*w;
-             accPosition = accPosition + fposition;
-         }
     }
 
     accPosition = vec4(accPosition.x,accPosition.z,accPosition.y,1.0);

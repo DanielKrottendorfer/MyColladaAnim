@@ -9,6 +9,7 @@ import org.joml.Vector3f;
 import static org.lwjgl.opengl.GL20.*;
 
 import org.joml.Vector4f;
+import org.joml.Vector4fc;
 import org.lwjgl.system.MemoryStack;
 
 public class ShaderProgram {
@@ -45,37 +46,58 @@ public class ShaderProgram {
             glUniformMatrix4fv(uniforms.get(uniformName), false, fb);
         }
     }
-    public void setUniform(String uniformName, Matrix4f[] values) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
 
-            int len =values.length;
+    public void setUniform(String uniformName, Matrix4f value,boolean twisted) {
+
+        value = flipMatrix4f(value);
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            // Dump the matrix into a float buffer
+            FloatBuffer fb = stack.mallocFloat(16);
+            value.get(fb);
+            glUniformMatrix4fv(uniforms.get(uniformName), false, fb);
+        }
+    }
+
+
+    public void setUniform(String uniformName, Matrix4f[] values) {
+
+        int len = values.length;
+
+        for(int i = 0;i<len;i++){
+            values[i] = flipMatrix4f(values[i]);
+        }
+
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
 
             FloatBuffer fb = stack.mallocFloat(16*len);
 
-
             for(int i = 0;i<len;i++){
 
-                Matrix4f bm = new Matrix4f();
+                values[i].get(16*i, fb);
 
-                float[] mf = new float[16];
-                values[i].get(mf);
-                Vector4f[] a = new Vector4f[4];
-
-                for(int y = 0;y<4;y++) {
-                    a[y] = new Vector4f(mf[y], mf[y+4], mf[y+8], mf[y+12]);
-                }
-
-
-                Matrix4f m =new Matrix4f(a[0],a[1],a[2],a[3]);
-
-
-
-                m.get(16*i,fb);
             }
-
 
             glUniformMatrix4fv(uniforms.get(uniformName), false, fb);
         }
+    }
+
+
+    public Matrix4f flipMatrix4f(Matrix4f m){
+
+        float[] mf = new float[16];
+
+        m.get(mf);
+
+        Vector4fc[] colums = new Vector4fc[4];
+
+        for(int i = 0 ; i<4;i++){
+            colums[i] = new Vector4f(mf[i],mf[i+4],mf[i+8],mf[i+12]);
+        }
+
+        return new Matrix4f(colums[0],colums[1],colums[2],colums[3]);
+
     }
 
     public void setUniform(String uniformName, int value) {

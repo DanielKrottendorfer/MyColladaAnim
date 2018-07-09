@@ -1,16 +1,17 @@
 package org.lwjglb.engine.graph.Animation;
 
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.Arrays;
 
 public class SkinPoint {
-    private Vector4f positon;
+    private Vector3f positon;
 
     private float[] weights;
     private int[] jointI;
 
-    public SkinPoint(Vector4f positon, float[] weights, int[] jointI) {
+    public SkinPoint(Vector3f positon, float[] weights, int[] jointI) {
         this.positon = positon;
         this.weights = weights;
         this.jointI = jointI;
@@ -25,11 +26,11 @@ public class SkinPoint {
                 '}';
     }
 
-    public Vector4f getPositon() {
+    public Vector3f getPositon() {
         return positon;
     }
 
-    public void setPositon(Vector4f positon) {
+    public void setPositon(Vector3f positon) {
         this.positon = positon;
     }
 

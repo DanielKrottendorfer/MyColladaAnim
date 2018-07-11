@@ -134,18 +134,14 @@ public class Renderer {
 
                 AnimatedModel animModel = gameItem.getAnimatedModel();
 
-                Joint[] joints = animModel.getJoints();
-
-                int jointC = joints.length;
+                int jointC = animModel.getCurrentPose().length;
 
                 Matrix4f[] jointTransforms = new Matrix4f[jointC];
 
                 //System.out.println(Arrays.toString(joints));
 
                 for (int i = 0; i < jointC; i++) {
-                    Matrix4f jtf = new Matrix4f(joints[i].jointKeyFPositionsTransformM[1]);
-                    Matrix4f bpm = new Matrix4f(joints[i].jointBindPositionTransformM);
-                    jointTransforms[i] = jtf.mul(bpm);
+                    jointTransforms[i] = animModel.getCurrentPose()[i];
                     //System.out.println(jointTransforms[i]+"\n");
                 }
                 //System.out.println("___________________________________________");

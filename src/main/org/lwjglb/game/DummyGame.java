@@ -6,6 +6,7 @@ import org.joml.Vector3f;
 import static org.lwjgl.assimp.Assimp.aiImportFile;
 import static org.lwjgl.glfw.GLFW.*;
 
+import org.lwjgl.glfw.GLFW;
 import org.lwjglb.engine.GameItem;
 import org.lwjglb.engine.IGameLogic;
 import org.lwjglb.engine.MouseInput;
@@ -40,7 +41,8 @@ public class DummyGame implements IGameLogic {
         renderer.init(window);
 
 
-        AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlockTopBend.dae");
+        //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/MultyJointBlock.dae");
+        AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlock.dae");
         //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/CharacterRunning.dae");
@@ -59,25 +61,18 @@ public class DummyGame implements IGameLogic {
         gameItems = new GameItem[]{gameItem};
     }
 
-    @Override
+
     public void input(Window window, MouseInput mouseInput) {
         cameraInc.set(0, 0, 0);
 
-        if (window.isKeyPressed(GLFW_KEY_UP)) {
-            gameItem2.setPosition(gameItem2.getPosition().x,gameItem2.getPosition().y,gameItem2.getPosition().z-1f);
-        } else if (window.isKeyPressed(GLFW_KEY_DOWN)) {
-            gameItem2.setPosition(gameItem2.getPosition().x,gameItem2.getPosition().y,gameItem2.getPosition().z+1f);
+        if(window.isKeyPressed(GLFW_KEY_SPACE)) {
+            if(gameItems[0].getAnimatedModel().isAnimationInProgress()){
+                gameItems[0].getAnimatedModel().stopAnimation();
+            }else {
+                gameItems[0].getAnimatedModel().startAnimation();
+            }
         }
-        if (window.isKeyPressed(GLFW_KEY_LEFT)) {
-            gameItem2.setPosition(gameItem2.getPosition().x-1f,gameItem2.getPosition().y,gameItem2.getPosition().z);
-        } else if (window.isKeyPressed(GLFW_KEY_RIGHT)) {
-            gameItem2.setPosition(gameItem2.getPosition().x+1f,gameItem2.getPosition().y,gameItem2.getPosition().z);
-        }
-        if (window.isKeyPressed(GLFW_KEY_O)) {
-            gameItem2.setPosition(gameItem2.getPosition().x,gameItem2.getPosition().y+1f,gameItem2.getPosition().z);
-        } else if (window.isKeyPressed(GLFW_KEY_L)) {
-            gameItem2.setPosition(gameItem2.getPosition().x,gameItem2.getPosition().y-1f,gameItem2.getPosition().z);
-        }
+
         if (window.isKeyPressed(GLFW_KEY_W)) {
             cameraInc.z = -1f;
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
@@ -104,6 +99,12 @@ public class DummyGame implements IGameLogic {
         if (mouseInput.isRightButtonPressed()) {
             Vector2f rotVec = mouseInput.getDisplVec();
             camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0);
+        }
+
+        for(GameItem gi : gameItems){
+            if(gi.isAnimated()){
+                gi.getAnimatedModel().advanceAnimation(interval);
+            }
         }
     }
 

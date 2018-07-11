@@ -9,13 +9,38 @@ public class Joint {
     public Matrix4f jointBindPositionTransformM;
     public Matrix4f jointKeyFPositionsTransformM[];
 
-    public float[] timestamps;
-
     private int index;
 
     private String name;
 
     private Joint[] children;
+
+    private int jointC;
+
+
+    public Joint(Joint joint){
+        this.jointBindPositionTransformM= new Matrix4f(joint.jointBindPositionTransformM);
+        this.jointKeyFPositionsTransformM = new Matrix4f[joint.jointKeyFPositionsTransformM.length];
+
+        for(int i = 0 ; i<joint.jointKeyFPositionsTransformM.length;i++){
+            this.jointKeyFPositionsTransformM[i] = new Matrix4f(joint.jointKeyFPositionsTransformM[i]);
+        }
+
+        this.index = joint.index;
+
+        this.name = joint.name;
+
+        this.jointC = joint.jointC;
+
+        if(joint.getChildren()!=null) {
+            this.children = new Joint[joint.getChildren().length];
+            for (int i = 0; i < joint.getChildren().length; i++) {
+                this.children[i] = new Joint(joint.getChildren()[i]);
+            }
+        }else {
+            this.children = null;
+        }
+    }
 
     public Joint(Matrix4f jointBindPositionTransformM, String name) {
         this.jointBindPositionTransformM = jointBindPositionTransformM;
@@ -37,6 +62,7 @@ public class Joint {
         return null;
 
     }
+
     public Joint findJoint(int index){
 
         if(this.index==index){
@@ -90,10 +116,23 @@ public class Joint {
         return children != null;
     }
 
-    public void printTree(String indent){
+    public void printTree(){
+        System.out.println("name: "+name+" index: "+index+"\n");
+
         if(children!=null){
+            for(Joint child : children){
+                System.out.println(" name: "+child.getName()+" index: "+child.getIndex()+"\n");
+            }
             for (Joint child:children)
-                child.printTree(indent + "|");
+                child.printTree();
         }
+    }
+
+    public int getJointC() {
+        return jointC;
+    }
+
+    public void setJointC(int jointC) {
+        this.jointC = jointC;
     }
 }

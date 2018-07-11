@@ -30,6 +30,7 @@ public class Texture {
         // Load Texture file
         PNGDecoder decoder = new PNGDecoder(Texture.class.getResourceAsStream(fileName));
 
+
         // Load texture contents into a byte buffer
         ByteBuffer buf = ByteBuffer.allocateDirect(
                 4 * decoder.getWidth() * decoder.getHeight());

@@ -1,12 +1,16 @@
 package org.lwjglb.engine.graph.Animation;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.system.CallbackI;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjglb.engine.graph.Texture;
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -33,18 +37,29 @@ public class AnimatedModel {
 
     private Vector3f colour;
 
-    private Joint[] joints;
+    private Joint rootJoint;
+
+    public final float[] timestamps;
+
+    Matrix4f[] currentPose;
 
     final int jointCount;
 
+    private float currentAnimationTime = 0f;
 
-    public AnimatedModel(float[] positions, float[] normV, float[] texture, float[] weights, int[] indices, int[] matrixIndices, Joint[] joints) {
+    private boolean animationInProgress = true;
 
+    public AnimatedModel(float[] positions, float[] normV, float[] texture, float[] weights, int[] indices, int[] matrixIndices, Joint rootJoint, float[] timeStamps) {
 
+        this.timestamps = timeStamps;
 
-        this.joints = joints;
+        this.rootJoint = rootJoint;
 
-        jointCount = joints.length;
+        jointCount = rootJoint.getJointC();
+
+        currentPose = new Matrix4f[jointCount];
+
+        advanceAnimation(0.1f);
 
         FloatBuffer posBuffer = null;
         FloatBuffer textCoordsBuffer = null;
@@ -163,12 +178,36 @@ public class AnimatedModel {
         }
     }
 
-    public Joint[] getJoints() {
-        return joints;
+    public Matrix4f[] getCurrentPose() {
+        return currentPose;
     }
 
-    public void setJoints(Joint[] joints) {
-        this.joints = joints;
+    public float getCurrentAnimationTime() {
+        return currentAnimationTime;
+    }
+
+    public void setCurrentAnimationTime(float currentAnimationTime) {
+        this.currentAnimationTime = currentAnimationTime;
+    }
+
+    public boolean isAnimationInProgress() {
+        return animationInProgress;
+    }
+
+    public void stopAnimation() {
+        animationInProgress = false;
+    }
+
+    public void startAnimation() {
+        animationInProgress = true;
+    }
+
+    public void setAnimationInProgress(boolean animationInProgress) {
+        this.animationInProgress = animationInProgress;
+    }
+
+    public Joint getRootJoint() {
+        return rootJoint;
     }
 
     public boolean isTextured() {
@@ -246,5 +285,140 @@ public class AnimatedModel {
         // Delete the VAO
         glBindVertexArray(0);
         glDeleteVertexArrays(vaoId);
+    }
+
+    private static Joint[] generateJointArray(Joint rootJoint) {
+        ArrayList<Joint> jl = new ArrayList<>();
+
+        for(int i = 0;true;i++){
+            Joint j = rootJoint.findJoint(i);
+            if(j==null) {
+                break;
+            }
+
+            jl.add(j);
+        }
+
+        Joint[] jr = new Joint[jl.size()];
+
+        for(int i = 0;i<jr.length;i++){
+            jr[i] = jl.get(i);
+        }
+
+        return jr;
+    }
+
+    public void multiplyMatrices(Joint[] rJ,Matrix4f[] currentPose){
+
+        for(int i = 0;i<rJ.length;i++){
+
+            if(rJ[i].getChildren()!=null){
+                for (int y = 0;y<rJ[i].getChildren().length;y++){
+                    Matrix4f temp = new Matrix4f(currentPose[rJ[i].getIndex()]);
+
+                    currentPose[rJ[i].getChildren()[y].getIndex()] = temp.mul(currentPose[rJ[i].getChildren()[y].getIndex()]);
+
+                }
+            }
+
+        }
+
+    }
+
+    /*
+    private void multiplyMatrices(Joint joint, Matrix4f[] currentPose) {
+
+        if(joint.getChildren()!=null){
+            for(Joint j: joint.getChildren()){
+
+                Matrix4f temp = new Matrix4f(currentPose[joint.getIndex()]);
+
+
+
+                currentPose[j.getIndex()] = temp.mul(currentPose[j.getIndex()]);
+
+
+
+            }
+            for(Joint j: joint.getChildren())
+                multiplyMatrices(j,currentPose);
+
+        }
+
+    }
+*/
+
+    public void advanceAnimation(float interval) {
+
+
+        if(isAnimationInProgress()) {
+
+            currentAnimationTime += interval;
+
+            if(currentAnimationTime>timestamps[timestamps.length-1]) {
+
+                currentAnimationTime -= timestamps[timestamps.length - 1];
+
+            }
+        }
+        if(currentAnimationTime<timestamps[0]){
+            currentAnimationTime = timestamps[0];
+        }
+
+        float iV ;
+
+        for(int i = 1;i<timestamps.length;i++){
+
+            if(timestamps[i-1]<=currentAnimationTime&&timestamps[i]>=currentAnimationTime){
+
+
+                float prevTime = currentAnimationTime-timestamps[i-1];
+                float nextTime = timestamps[i]-currentAnimationTime;
+
+                //System.out.println(currentAnimationTime);
+
+                //System.out.println("pT "+prevTime+" nT "+nextTime);
+
+                iV = (nextTime/(nextTime+prevTime));
+
+                //System.out.println("iV"+iV+"\n");
+
+                Joint tempRoot = new Joint(rootJoint);
+
+                Joint[] joints = generateJointArray(tempRoot);
+
+
+                for (int y = 0;y<jointCount;y++){
+
+
+                    Matrix4f prevPose = joints[y].jointKeyFPositionsTransformM[i-1];
+
+                    //System.out.println("pp "+prevPose);
+
+                    Matrix4f nextPose = joints[y].jointKeyFPositionsTransformM[i] ;
+
+                    //System.out.println("np "+nextPose);
+
+
+                    //System.out.println("bp "+bindPosM);
+
+                    prevPose.lerp(nextPose,iV);
+
+
+                    currentPose[y] = prevPose;
+
+                }
+
+
+                multiplyMatrices(joints,currentPose);
+
+
+                for(int y = 0; y<jointCount;y++)
+                    currentPose[y].mul(joints[y].jointBindPositionTransformM);
+
+
+                return;
+            }
+        }
     }
 }

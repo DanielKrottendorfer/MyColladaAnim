@@ -45,14 +45,14 @@ public class ColladaLoader {
          */
 
         String temp ;
-        temp = findChildByID(geometries,"Cube-mesh-positions-array").getValue();
+        temp = findChildByID(geometries,"mesh-positions-array").getValue();
         Vector3f[] vertecis = Objects.requireNonNull(Vector3fArrayParser(temp.split(" ")));
 
-        temp = findChildByID(geometries,"Cube-mesh-normals-array").getValue();
+        temp = findChildByID(geometries,"mesh-normals-array").getValue();
         Vector3f[] normals = Objects.requireNonNull(Vector3fArrayParser(temp.split(" ")));
 
 
-        temp = findChildByID(geometries,"Cube-mesh-map-0-array").getValue();
+        temp = findChildByID(geometries,"mesh-map-0-array").getValue();
         Vector2f[] uvMap = Objects.requireNonNull(Vector2fArrayParser(temp.split(" ")));
 
 
@@ -72,9 +72,9 @@ public class ColladaLoader {
 
         addJointTransforms(rootJoint,animation);
 
-        multiplyMatrices(rootJoint);
-
         Joint[] joints = generateJointArray(rootJoint);
+
+        rootJoint.setJointC(joints.length);
 
         temp = findChildByID(controllers,"Armature_Cube-skin-bind_poses-array").getValue();
 
@@ -83,6 +83,8 @@ public class ColladaLoader {
         for(int i = 0;i<bindPos.length;i++){
             joints[i].jointBindPositionTransformM=bindPos[i];
         }
+
+        float[] timeStamps = floatArrayParser(findChildByID(animation,"pose_matrix-input-array").getValue().split(" "));
 
 
         /*
@@ -113,8 +115,9 @@ public class ColladaLoader {
 
         }
         */
+        rootJoint.printTree();
 
-        return reorderDynamicM(points,normals,uvMap,faces,faceAttributes,joints);
+        return reorderDynamicM(points,normals,uvMap,faces,faceAttributes,rootJoint,timeStamps);
     }
 
 
@@ -246,21 +249,20 @@ public class ColladaLoader {
 
     }
 
-    private static AnimatedModel reorderDynamicM(SkinPoint[] skinPoints, Vector3f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes, Joint[] joints) {
+    private static AnimatedModel reorderDynamicM(SkinPoint[] skinPoints, Vector3f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes, Joint rootJoint, float[] timeStamps) {
 
 
         ArrayList<Float> v = new ArrayList<>();
-        ArrayList<Float> w = new ArrayList<>();
-        ArrayList<Integer> m = new ArrayList<>();
         ArrayList<Float> n = new ArrayList<>();
         ArrayList<Float> t = new ArrayList<>();
+
+        ArrayList<Float> w = new ArrayList<>();
+        ArrayList<Integer> m = new ArrayList<>();
         ArrayList<Integer> jc = new ArrayList<>();
 
 
-        int[] indices = new int[faces.length];
 
 
-        String print = "";
         for(int i = 0;i<faces.length;i+=faceAttributes){
 
 
@@ -293,11 +295,15 @@ public class ColladaLoader {
 
             t.add(uvMap[faces[i+2]].x);
             t.add(1-uvMap[faces[i+2]].y);
-
-            indices[i]=i;
-            indices[i+1]=i+1;
-            indices[i+2]=i+2;
         }
+
+        int[] indices = new int[v.size()/3];
+
+        for(int i = 0; i<v.size()/3;i++){
+            indices[i]=i;
+        }
+
+
 
 
         float[] positions = new float[v.size()];
@@ -328,7 +334,10 @@ public class ColladaLoader {
             jointCount[i] = jc.get(i);
         }
 
-        return new AnimatedModel(positions,normV,texture,weights,indices,matrixIndices,joints);
+        System.out.println(positions.length);
+        System.out.println(indices.length);
+
+        return new AnimatedModel(positions,normV,texture,weights,indices,matrixIndices,rootJoint,timeStamps);
 
     }
 
@@ -376,10 +385,8 @@ public class ColladaLoader {
             if(tempj==null)
                 continue;
 
-            float[] timeStamps = floatArrayParser(findChildByID(jointN,"Armature_"+name+"_pose_matrix-input-array").getValue().split(" "));
 
             tempj.jointKeyFPositionsTransformM = Matrix4fArrayParser(findChildByID(jointN,"Armature_"+name+"_pose_matrix-output-array").getValue().split(" "));
-            tempj.timestamps = timeStamps;
 
         }
 
@@ -561,7 +568,7 @@ public class ColladaLoader {
 
     private static Element findChildByID(Element rootElement, String id) {
         if (rootElement.getAttributeValue("id") != null){
-            if (rootElement.getAttributeValue("id").startsWith(id)) {
+            if (rootElement.getAttributeValue("id").contains(id)) {
                 return rootElement;
             }
         }

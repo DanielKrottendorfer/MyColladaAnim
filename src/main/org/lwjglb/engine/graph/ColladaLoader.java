@@ -72,6 +72,8 @@ public class ColladaLoader {
 
         addJointTransforms(rootJoint,animation);
 
+        //multiplyMatrices(rootJoint);
+
         Joint[] joints = generateJointArray(rootJoint);
 
         rootJoint.setJointC(joints.length);
@@ -115,7 +117,7 @@ public class ColladaLoader {
 
         }
         */
-        rootJoint.printTree();
+
 
         return reorderDynamicM(points,normals,uvMap,faces,faceAttributes,rootJoint,timeStamps);
     }
@@ -252,6 +254,7 @@ public class ColladaLoader {
     private static AnimatedModel reorderDynamicM(SkinPoint[] skinPoints, Vector3f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes, Joint rootJoint, float[] timeStamps) {
 
 
+
         ArrayList<Float> v = new ArrayList<>();
         ArrayList<Float> n = new ArrayList<>();
         ArrayList<Float> t = new ArrayList<>();
@@ -259,6 +262,7 @@ public class ColladaLoader {
         ArrayList<Float> w = new ArrayList<>();
         ArrayList<Integer> m = new ArrayList<>();
         ArrayList<Integer> jc = new ArrayList<>();
+
 
 
 
@@ -333,9 +337,6 @@ public class ColladaLoader {
         for(int i = 0;i<jointCount.length;i++){
             jointCount[i] = jc.get(i);
         }
-
-        System.out.println(positions.length);
-        System.out.println(indices.length);
 
         return new AnimatedModel(positions,normV,texture,weights,indices,matrixIndices,rootJoint,timeStamps);
 

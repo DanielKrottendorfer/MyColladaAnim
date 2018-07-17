@@ -26,7 +26,7 @@ void main()
 
         float w = weight[i];
 
-            vec4 fposition = vec4(position.x,position.z,position.y,1.0);
+            vec4 fposition = vec4(position.x,position.y,position.z,1.0);
 
         if(matrixIndices[i]==0)
         {

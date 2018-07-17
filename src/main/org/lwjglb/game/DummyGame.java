@@ -14,6 +14,8 @@ import org.lwjglb.engine.Window;
 import org.lwjglb.engine.graph.*;
 import org.lwjglb.engine.graph.Animation.AnimatedModel;
 
+import java.rmi.MarshalException;
+
 public class DummyGame implements IGameLogic {
 
     private static final float MOUSE_SENSITIVITY = 0.2f;
@@ -41,14 +43,15 @@ public class DummyGame implements IGameLogic {
         renderer.init(window);
 
 
-        //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/MultyJointBlock.dae");
-        AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlock.dae");
-        //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning.dae");
+        //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlockTwistBend.dae");
+        //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlock.dae");
+        AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning3Weights.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/CharacterRunning.dae");
 
+        mesh.stopAnimation();
 
-        Texture texture = new Texture("/textures/Untitled.png");
+        Texture texture = new Texture("/textures/diffuse.png");
         //Texture texture = new Texture("/textures/diffuse.png");
 
 

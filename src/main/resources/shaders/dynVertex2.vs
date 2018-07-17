@@ -30,7 +30,7 @@ void main()
         }
     }
 
-    accPosition = vec4(accPosition.x,accPosition.z,accPosition.y,1.0);
+    accPosition = vec4(-accPosition.x,accPosition.z,accPosition.y,1.0);
 
     gl_Position = projectionMatrix * modelViewMatrix * accPosition;
     outTexCoord = texCoord;

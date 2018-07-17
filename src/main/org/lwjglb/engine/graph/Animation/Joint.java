@@ -82,9 +82,20 @@ public class Joint {
 
     @Override
     public String toString() {
+        String childnames="";
+
+        if(children!=null) {
+            for (int i = 0; i < children.length; i++) {
+
+                childnames += children[i].getName() + ", ";
+
+            }
+        }
+
         return "Joint{" +
                 "index=" + index +
-                ", name='" + name + '\'' +
+                ", name='" + name +
+                " children= "+childnames + '\'' +
                 '}';
     }
 
@@ -117,7 +128,17 @@ public class Joint {
     }
 
     public void printTree(){
-        System.out.println("name: "+name+" index: "+index+"\n");
+        String matrices = "";
+
+        for(int i=0;i<jointKeyFPositionsTransformM.length;i++){
+            matrices += "i: "+i+"\n"+jointKeyFPositionsTransformM[i];
+        }
+
+        matrices +="bp: +\n"+jointBindPositionTransformM;
+
+
+        System.out.println("name: "+name+" index: "+index+"\n"+matrices);
+
 
         if(children!=null){
             for(Joint child : children){

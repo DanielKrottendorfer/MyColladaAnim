@@ -1,7 +1,9 @@
 package org.lwjglb.engine.graph.Animation;
 
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.system.CallbackI;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjglb.engine.graph.Texture;
@@ -43,6 +45,8 @@ public class AnimatedModel {
 
     Matrix4f[] currentPose;
 
+    Quaternionf[] currentPoseRotation;
+
     final int jointCount;
 
     private float currentAnimationTime = 0f;
@@ -59,7 +63,8 @@ public class AnimatedModel {
 
         currentPose = new Matrix4f[jointCount];
 
-        advanceAnimation(0.1f);
+        currentPoseRotation = new Quaternionf[jointCount];
+
 
         FloatBuffer posBuffer = null;
         FloatBuffer textCoordsBuffer = null;
@@ -308,16 +313,26 @@ public class AnimatedModel {
         return jr;
     }
 
-    public void multiplyMatrices(Joint[] rJ,Matrix4f[] currentPose){
+    public void multiplyMatrices(Joint[] rJ){
+
 
         for(int i = 0;i<rJ.length;i++){
-
             if(rJ[i].getChildren()!=null){
                 for (int y = 0;y<rJ[i].getChildren().length;y++){
+
                     Matrix4f temp = new Matrix4f(currentPose[rJ[i].getIndex()]);
 
-                    currentPose[rJ[i].getChildren()[y].getIndex()] = temp.mul(currentPose[rJ[i].getChildren()[y].getIndex()]);
+                    //System.out.println(temp);
 
+                    temp.mul(currentPose[rJ[i].getChildren()[y].getIndex()]);
+
+
+
+                    currentPose[rJ[i].getChildren()[y].getIndex()] = temp;
+
+
+
+                    //System.out.println(temp+"\n ______________________________________________");
                 }
             }
 
@@ -350,7 +365,6 @@ public class AnimatedModel {
 
     public void advanceAnimation(float interval) {
 
-
         if(isAnimationInProgress()) {
 
             currentAnimationTime += interval;
@@ -379,6 +393,8 @@ public class AnimatedModel {
 
                 //System.out.println("pT "+prevTime+" nT "+nextTime);
 
+
+                // Normalizing the interpolationvalue
                 iV = (nextTime/(nextTime+prevTime));
 
                 //System.out.println("iV"+iV+"\n");
@@ -387,35 +403,67 @@ public class AnimatedModel {
 
                 Joint[] joints = generateJointArray(tempRoot);
 
+                //System.out.println("1: \n"+Arrays.toString(currentPose));
 
                 for (int y = 0;y<jointCount;y++){
 
 
                     Matrix4f prevPose = joints[y].jointKeyFPositionsTransformM[i-1];
 
-                    //System.out.println("pp "+prevPose);
-
                     Matrix4f nextPose = joints[y].jointKeyFPositionsTransformM[i] ;
+
+                    Vector3f nextjtransfV = new Vector3f();
+
+                    nextPose.getTranslation(nextjtransfV);
+
+                    Vector3f prevjtransfV = new Vector3f();
+
+                    prevPose.getTranslation(prevjtransfV);
+
+
+                    Quaternionf prevQ = new Quaternionf();
+
+                    prevPose.getNormalizedRotation(prevQ);
+
+                    Quaternionf nextQ = new Quaternionf();
+
+                    nextPose.getNormalizedRotation(nextQ);
+
 
                     //System.out.println("np "+nextPose);
 
 
                     //System.out.println("bp "+bindPosM);
 
-                    prevPose.lerp(nextPose,iV);
 
 
-                    currentPose[y] = prevPose;
+                    nextQ.slerp(prevQ,iV);
+
+                    nextjtransfV.lerp(prevjtransfV,iV);
+
+                    Matrix4f pose = new Matrix4f();
+
+                    pose.translate(nextjtransfV);
+                    pose.rotate(nextQ);
+
+
+
+                    currentPose[y] = new Matrix4f(pose);
 
                 }
 
+                multiplyMatrices(joints);
 
-                multiplyMatrices(joints,currentPose);
 
+                for(int y = 0; y<jointCount;y++) {
+                    //currentPose[y].rotate(currentPoseRotation[y].normalize());
 
-                for(int y = 0; y<jointCount;y++)
                     currentPose[y].mul(joints[y].jointBindPositionTransformM);
 
+                }
+                //System.out.println();
+
+                //System.out.println("3: \n"+Arrays.toString(currentPose));
 
                 return;
             }

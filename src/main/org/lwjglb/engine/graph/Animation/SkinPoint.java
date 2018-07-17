@@ -22,7 +22,7 @@ public class SkinPoint {
         return "SkinPoint{" +
                 "positon=" + positon +
                 ", weights=" + Arrays.toString(weights) +
-                ", jointI=" + Arrays.toString(jointI) +
+                ", jointI=" + Arrays.toString(jointI) + "total " + weights.length+
                 '}';
     }
 

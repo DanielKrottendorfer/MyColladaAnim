@@ -3,6 +3,7 @@ package org.lwjglb.engine.graph;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.joml.Vector3f;
 import static org.lwjgl.opengl.GL11.*;
@@ -84,6 +85,85 @@ public class Mesh {
             }
             if (textCoordsBuffer != null) {
                 MemoryUtil.memFree(textCoordsBuffer);
+            }
+            if (vecNormalsBuffer != null) {
+                MemoryUtil.memFree(vecNormalsBuffer);
+            }
+            if (indicesBuffer != null) {
+                MemoryUtil.memFree(indicesBuffer);
+            }
+        }
+    }
+    public Mesh(float[] positions, Vector3f[] colorV, float[] normals, int[] indices) {
+
+        float[] color = new float[colorV.length*3];
+
+        for(int i =0,y=0;i<color.length;i+=3,y++){
+
+            color[i]=colorV[y].x;
+            color[i+1]=colorV[y].y;
+            color[i+2]=colorV[y].z;
+
+        }
+
+        System.out.print(Arrays.toString(color));
+
+        FloatBuffer posBuffer = null;
+        FloatBuffer colorBuffer = null;
+        FloatBuffer vecNormalsBuffer = null;
+        IntBuffer indicesBuffer = null;
+        try {
+            colour = DEFAULT_COLOUR;
+            vertexCount = indices.length;
+            vboIdList = new ArrayList();
+
+            vaoId = glGenVertexArrays();
+            glBindVertexArray(vaoId);
+
+            // Position VBO
+            int vboId = glGenBuffers();
+            vboIdList.add(vboId);
+            posBuffer = MemoryUtil.memAllocFloat(positions.length);
+            posBuffer.put(positions).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+            // Color VBO
+            vboId = glGenBuffers();
+            vboIdList.add(vboId);
+            colorBuffer = MemoryUtil.memAllocFloat(color.length);
+            colorBuffer.put(color).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBufferData(GL_ARRAY_BUFFER, colorBuffer, GL_STATIC_DRAW);
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+
+            // Vertex normals VBO
+            vboId = glGenBuffers();
+            vboIdList.add(vboId);
+            vecNormalsBuffer = MemoryUtil.memAllocFloat(normals.length);
+            vecNormalsBuffer.put(normals).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBufferData(GL_ARRAY_BUFFER, vecNormalsBuffer, GL_STATIC_DRAW);
+            glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+
+            // Index VBO
+
+            vboId = glGenBuffers();
+            vboIdList.add(vboId);
+            indicesBuffer = MemoryUtil.memAllocInt(indices.length);
+            indicesBuffer.put(indices).flip();
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboId);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        } finally {
+            if (posBuffer != null) {
+                MemoryUtil.memFree(posBuffer);
+            }
+            if (colorBuffer != null) {
+                MemoryUtil.memFree(colorBuffer);
             }
             if (vecNormalsBuffer != null) {
                 MemoryUtil.memFree(vecNormalsBuffer);

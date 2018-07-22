@@ -18,7 +18,7 @@ import java.rmi.MarshalException;
 
 public class DummyGame implements IGameLogic {
 
-    private static final float MOUSE_SENSITIVITY = 0.2f;
+    private static final float MOUSE_SENSITIVITY = 0.08f;
 
     private final Vector3f cameraInc;
 
@@ -49,19 +49,27 @@ public class DummyGame implements IGameLogic {
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/CharacterRunning.dae");
 
+
         mesh.stopAnimation();
 
         Texture texture = new Texture("/textures/diffuse.png");
         //Texture texture = new Texture("/textures/diffuse.png");
 
-
-
         mesh.setTexture(texture);
+
+        Mesh plain = PlaneGenerator.generate(100f,100f,30, 30);
+
+        GameItem p = new GameItem(plain,true);
+        p.setScale(1);
+        p.setPosition(-1, -10, -20);
+
+
+
         GameItem gameItem = new GameItem(mesh);
         gameItem.setScale(0.5f);
         gameItem.setPosition(-1, -1, -2);
 
-        gameItems = new GameItem[]{gameItem};
+        gameItems = new GameItem[]{gameItem,p};
     }
 
 
@@ -75,6 +83,16 @@ public class DummyGame implements IGameLogic {
                 gameItems[0].getAnimatedModel().startAnimation();
             }
         }
+
+
+        if(window.isKeyPressed(GLFW_KEY_T)){
+            Vector3f gp = gameItems[0].getPosition();
+            Vector3f cp = camera.getPosition();
+
+            camera.setRotation(gp.x,gp.y,gp.z);
+
+        }
+
 
         if (window.isKeyPressed(GLFW_KEY_W)) {
             cameraInc.z = -1f;

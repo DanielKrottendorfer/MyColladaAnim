@@ -29,6 +29,7 @@ public class Renderer {
 
     private ShaderProgram StaticShaderProgram;
     private ShaderProgram DynamicShaderProgram;
+    private ShaderProgram PlaneShaderProgram;
 
     private boolean b = true;
 
@@ -60,21 +61,31 @@ public class Renderer {
 
 
         // Create shader
+        PlaneShaderProgram = new ShaderProgram();
+        PlaneShaderProgram.createVertexShader(Utils.loadResource("/shaders/planeVertex.vs"));
+        PlaneShaderProgram.createFragmentShader(Utils.loadResource("/shaders/planeFragment.fs"));
+        PlaneShaderProgram.link();
+        
+        // Create uniforms for modelView and projection matrices and texture
+        PlaneShaderProgram.createUniform("projectionMatrix");
+        PlaneShaderProgram.createUniform("modelViewMatrix");
+
+        // Create shader
         StaticShaderProgram = new ShaderProgram();
         StaticShaderProgram.createVertexShader(Utils.loadResource("/shaders/statVertex.vs"));
         StaticShaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.fs"));
         StaticShaderProgram.link();
-        
+
         // Create uniforms for modelView and projection matrices and texture
         StaticShaderProgram.createUniform("projectionMatrix");
         StaticShaderProgram.createUniform("modelViewMatrix");
         StaticShaderProgram.createUniform("texture_sampler");
         // Create uniform for default colour and the flag that controls it
-        //shaderProgram.createUniform("colour");
+        StaticShaderProgram.createUniform("colour");
         StaticShaderProgram.createUniform("useColour");
     }
 
-    public void clear() {
+    private void clear() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
@@ -101,13 +112,13 @@ public class Renderer {
 
         // Render each gameItem
         for(GameItem gameItem : gameItems) {
-            if(!gameItem.isAnimated()){
+            if(!gameItem.isAnimated()&&!gameItem.isColored()){
                 Mesh mesh = gameItem.getMesh();
                 // Set model view matrix for this item
                 Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
                 StaticShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
                 // Render the mesh for this game item
-                //shaderProgram.setUniform("colour", mesh.getColour());
+                StaticShaderProgram.setUniform("colour", mesh.getColour());
                 StaticShaderProgram.setUniform("useColour", mesh.isTextured() ? 0 : 1);
                 mesh.render();
             }
@@ -162,6 +173,31 @@ public class Renderer {
         }
 
         DynamicShaderProgram.unbind();
+
+        PlaneShaderProgram.bind();
+
+        // Update projection Matrix
+        PlaneShaderProgram.setUniform("projectionMatrix", projectionMatrix);
+
+
+        // Update view Matrix
+
+        // Render each gameItem
+        for(GameItem gameItem : gameItems) {
+            if(gameItem.isColored()){
+                Mesh mesh = gameItem.getMesh();
+                // Set model view matrix for this item
+                Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
+                PlaneShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+                // Render the mesh for this game item
+
+
+                mesh.render();
+            }
+        }
+
+
+        PlaneShaderProgram.unbind();
 
     }
 

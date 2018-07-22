@@ -18,6 +18,8 @@ public class GameItem {
 
     private final boolean animated;
 
+    private final boolean colored;
+
     private final int vaoId;
 
     public GameItem(Mesh mesh) {
@@ -27,6 +29,18 @@ public class GameItem {
         rotation = new Vector3f(0, 0, 0);
         animatedModel = null;
         animated =false;
+        colored = false;
+        vaoId = mesh.getVaoId();
+    }
+    public GameItem(Mesh mesh,boolean isColored) {
+
+        this.mesh = mesh;
+        position = new Vector3f(0, 0, 0);
+        scale = 1;
+        rotation = new Vector3f(0, 0, 0);
+        animatedModel = null;
+        animated =false;
+        colored = true;
         vaoId = mesh.getVaoId();
     }
     public GameItem(AnimatedModel animatedModel) {
@@ -36,7 +50,12 @@ public class GameItem {
         rotation = new Vector3f(0, 0, 0);
         mesh = null;
         animated = true;
+        colored = false;
         vaoId = animatedModel.getVaoId();
+    }
+
+    public boolean isColored() {
+        return colored;
     }
 
     public Vector3f getPosition() {

@@ -61,7 +61,7 @@ public class DummyGame implements IGameLogic {
 
         GameItem p = new GameItem(plain,true);
         p.setScale(1);
-        p.setPosition(-1, -10, -20);
+        p.setPosition(-50, -10, -50);
 
 
 
@@ -76,7 +76,7 @@ public class DummyGame implements IGameLogic {
     public void input(Window window, MouseInput mouseInput) {
         cameraInc.set(0, 0, 0);
 
-        if(window.isKeyPressed(GLFW_KEY_SPACE)) {
+        if(window.isKeyPressedFirst(GLFW_KEY_SPACE)) {
             if(gameItems[0].getAnimatedModel().isAnimationInProgress()){
                 gameItems[0].getAnimatedModel().stopAnimation();
             }else {
@@ -87,27 +87,25 @@ public class DummyGame implements IGameLogic {
 
         if(window.isKeyPressed(GLFW_KEY_T)){
             Vector3f gp = gameItems[0].getPosition();
-            Vector3f cp = camera.getPosition();
-
             camera.setRotation(gp.x,gp.y,gp.z);
 
         }
 
 
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            cameraInc.z = -1f;
+            cameraInc.z = -5f;
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
-            cameraInc.z = 1f;
+            cameraInc.z = 5f;
         }
         if (window.isKeyPressed(GLFW_KEY_A)) {
-            cameraInc.x = -1f;
+            cameraInc.x = -5f;
         } else if (window.isKeyPressed(GLFW_KEY_D)) {
-            cameraInc.x = 1f;
+            cameraInc.x = 5f;
         }
         if (window.isKeyPressed(GLFW_KEY_Z)) {
-            cameraInc.y = -1f;
+            cameraInc.y = -5f;
         } else if (window.isKeyPressed(GLFW_KEY_X)) {
-            cameraInc.y = 1f;
+            cameraInc.y = 5f;
         }
     }
 

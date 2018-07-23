@@ -1,8 +1,6 @@
 package org.lwjglb.engine.graph;
 
-import org.joml.Planef;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
+import org.joml.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -44,14 +42,10 @@ public class PlaneGenerator {
 
                 positions[(i*vCL)+y] = new Vector3f(wSeparation*y,noise[i][y]*10,lSeparation*i);
 
-                Vector3f f1 = new Vector3f(242f/255f,82f/255f,13f/255f);
-                Vector3f f2 = new Vector3f(15f/255f,105f/255f,240f/255f);
 
-                f1.mul(f2);
 
-                f1.mul(noise[i][y]);
+                colors[(i*vCL)+y] = generateColor(new Color(82,204,79),new Color(201,150,82),noise[i][y]);
 
-                colors[(i*vCL)+y] = new Vector3f(f1);
 
             }
         }
@@ -143,6 +137,29 @@ public class PlaneGenerator {
 
 
         return reorder(positions,normals,colors,faceI);
+    }
+
+    private static Vector3f generateColor(Color color1, Color color2, float v) {
+
+        float[] HSBval1 = Color.RGBtoHSB(color1.getRed(),color1.getGreen(),color1.getBlue(),null);
+        float[] HSBval2 = Color.RGBtoHSB(color2.getRed(),color2.getGreen(),color2.getBlue(),null);
+
+        float hueDiff = HSBval2[0]-HSBval1[0] ;
+        float satDiff = HSBval2[1]-HSBval1[1] ;
+        float lumDiff = HSBval2[2]-HSBval1[2] ;
+
+        hueDiff*=v;
+        satDiff*=v;
+        lumDiff*=v;
+
+        HSBval1[0]+=hueDiff;
+        HSBval1[1]+=satDiff;
+        HSBval1[2]+=lumDiff;
+
+        Color c =new Color(Color.HSBtoRGB(HSBval1[0],HSBval1[1],HSBval1[2]));
+
+        return new Vector3f(((float)c.getRed())/255f,((float)c.getGreen())/255f,((float)c.getBlue())/255f);
+
     }
 
     private static Mesh reorder(Vector3f[] positions, Vector3f[] normals, Vector3f[] colors, int[] faceI) {

@@ -4,6 +4,9 @@ import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+
+import java.util.ArrayList;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -20,6 +23,8 @@ public class Window {
     private boolean resized;
 
     private boolean vSync;
+
+    private ArrayList<Integer> keyPressedList = new ArrayList<>();
 
     public Window(String title, int width, int height, boolean vSync) {
         this.title = title;
@@ -143,5 +148,41 @@ public class Window {
     public void update() {
         glfwSwapBuffers(windowHandle);
         glfwPollEvents();
+    }
+
+    public boolean isKeyPressedFirst(int keyCode) {
+
+        boolean is_pressed = glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;
+        boolean was_pressed = false;
+
+        int index = -1 ;
+
+        for(int i = 0 ; i < keyPressedList.size();i++){
+            if(keyPressedList.get(i)==keyCode){
+                was_pressed = true;
+                index = i;
+                break;
+            }
+        }
+
+
+        if(is_pressed&&was_pressed){
+
+            return false;
+
+        }else if(is_pressed&&!was_pressed){
+
+            keyPressedList.add(keyCode);
+            return true;
+
+        }else if(!is_pressed&&was_pressed){
+
+            keyPressedList.remove(index);
+            return false;
+
+        }
+
+    return false;
+
     }
 }

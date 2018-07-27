@@ -1,8 +1,12 @@
-package org.lwjglb.engine.graph;
+package org.lwjglb.engine.graph.World;
 
 import org.joml.*;
+import org.lwjgl.system.CallbackI;
+import org.lwjglb.engine.OpenSimplexNoise;
+import org.lwjglb.engine.graph.Mesh;
 
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -11,10 +15,12 @@ import static org.joml.SimplexNoise.noise;
 public class PlaneGenerator {
 
 
-    public static Mesh generate(float length, float width, int vCL, int vCW) {
+    public static Mesh generateFlatPlane(float X,float Z,float length, float width, int vCL, int vCW, int featuresize) {
 
         Vector3f[] positions = new Vector3f[vCL*vCW];
         Vector3f[] colors = new Vector3f[vCL*vCW];
+
+        OpenSimplexNoise sn = new OpenSimplexNoise(0);
 
         int columns = vCW-1;
 
@@ -23,9 +29,8 @@ public class PlaneGenerator {
         float wSeparation = width/columns;
         float lSeparation = length/rows;
 
+        System.out.println(wSeparation+" "+lSeparation);
 
-
-        float[][] noise = generateSimplexNoise(vCW,vCL);
 
 
         /*
@@ -36,20 +41,28 @@ public class PlaneGenerator {
 
 
 
-        for(int i=0;i<vCW;i++){
+        for(int i=0;i<vCL;i++){
 
-            for(int y=0;y<vCL;y++){
+            //System.out.print("\n i "+i+" ");
 
-                positions[(i*vCL)+y] = new Vector3f(wSeparation*y,noise[i][y]*10,lSeparation*i);
+            for(int y=0;y<vCW;y++){
 
+                float ns = (float) sn.eval(((float)i)/featuresize,((float)y)/featuresize,0);
 
+                ns++;
+                ns/=2;
 
-                colors[(i*vCL)+y] = generateColor(new Color(82,204,79),new Color(201,150,82),noise[i][y]);
+                colors[(i*vCW)+y] = new Vector3f(ns,ns,ns);
 
+                ns*=5;
+
+                positions[(i*vCW)+y] = new Vector3f(X+wSeparation*i,0,Z+lSeparation*y);
+
+                //System.out.print("y "+y+" "+positions[(y*vCL)+i]+" , ");
 
             }
-        }
 
+        }
         /*
 
             GENERATE INDICES
@@ -69,8 +82,10 @@ public class PlaneGenerator {
             public String toString(){
 
                 return indices[0]+", "+indices[1]+", "+indices[2];
+
             }
         }
+
 
 
         ArrayList<Face> triangles = new ArrayList<>();
@@ -79,20 +94,22 @@ public class PlaneGenerator {
 
             for(int y = 0 ; y<columns ; y++){
 
-                triangles.add(new Face(y+(i*vCW),y+(i*vCW)+1,y+((i+1)*vCW)));
+                int node = y+(i*vCW);
 
-                //System.out.print(triangles.get(triangles.size()-1)+", ");
+                triangles.add(new Face(node,node+1,node+vCW));
 
+                //System.out.print(triangles.get(triangles.size()-1)+" , ");
 
-                triangles.add(new Face(y+(i*vCW)+1,y+((i+1)*vCW)+1,y+((i+1)*vCW)));
+                triangles.add(new Face(node+1,node+1+vCW,node+vCW));
 
-                //System.out.print(triangles.get(triangles.size()-1)+", ");
-
+                //System.out.print(triangles.get(triangles.size()-1)+" , ");
             }
 
             //System.out.println();
 
         }
+
+        //System.out.println(triangles.size());
 
 
         int[] faceI = new int[triangles.size()*3];
@@ -104,14 +121,15 @@ public class PlaneGenerator {
             faceI[i]=face[0];
             faceI[i+1]=face[1];
             faceI[i+2]=face[2];
-        }
 
+        }
 
         /*
 
             GENERATE NORMALS
 
-         */
+        */
+
         Vector3f[] normals = new Vector3f[rows*columns*2];
 
         for(int i = 0,y=0; i<faceI.length;i+=3,y++){
@@ -132,14 +150,12 @@ public class PlaneGenerator {
 
         }
 
-
-
-
-
         return reorder(positions,normals,colors,faceI);
+
     }
 
-    private static Vector3f generateColor(Color color1, Color color2, float v) {
+
+    private static Vector3f hsvColorLerp(Color color1, Color color2, float v) {
 
         float[] HSBval1 = Color.RGBtoHSB(color1.getRed(),color1.getGreen(),color1.getBlue(),null);
         float[] HSBval2 = Color.RGBtoHSB(color2.getRed(),color2.getGreen(),color2.getBlue(),null);
@@ -162,7 +178,7 @@ public class PlaneGenerator {
 
     }
 
-    private static Mesh reorder(Vector3f[] positions, Vector3f[] normals, Vector3f[] colors, int[] faceI) {
+    public static Mesh reorder(Vector3f[] positions, Vector3f[] normals, Vector3f[] colors, int[] faceI) {
 
         ArrayList<Float> pL = new ArrayList<>();
         ArrayList<Float> nL = new ArrayList<>();
@@ -247,18 +263,142 @@ public class PlaneGenerator {
 
     }
 
+    public static Mesh generateNoisePlane(float X,float Z,float length, float width, int vCL, int vCW,OpenSimplexNoise noise, int featuresize) {
 
-    private static float[][] generateSimplexNoise(int width, int height){
-        float[][] simplexnoise = new float[width][height];
-        float frequency = 3.0f / (float) width;
+        Vector3f[] positions = new Vector3f[vCL*vCW];
+        Vector3f[] colors = new Vector3f[vCL*vCW];
 
-        for(int x = 0; x < width; x++){
-            for(int y = 0; y < height; y++){
-                simplexnoise[x][y] = noise(x * frequency,y * frequency);
-                simplexnoise[x][y] = (simplexnoise[x][y] + 1) / 2;   //generate values between 0 and 1
+
+        int columns = vCW-1;
+
+        int rows = vCL-1;
+
+        float wSeparation = width/columns;
+        float lSeparation = length/rows;
+
+
+
+
+        /*
+
+            GENERATE POSITIONS
+
+         */
+
+
+
+        for(int i=0;i<vCL;i++){
+
+            //System.out.print("\n i "+i+" ");
+
+            for(int y=0;y<vCW;y++){
+
+                float ns = (float) noise.eval((X+((float)i))/((float) featuresize),(Z+((float)y))/((float)featuresize),0);
+
+                ns++;
+                ns/=2;
+
+                colors[(i*vCW)+y] = new Vector3f(ns,ns,ns);
+
+
+                ns*=5;
+
+                positions[(i*vCW)+y] = new Vector3f(X+wSeparation*i,ns,Z+lSeparation*y);
+
+                //System.out.print("y "+y+" "+positions[(y*vCL)+i]+" , ");
+
+            }
+
+        }
+        /*
+
+            GENERATE INDICES
+
+         */
+
+        class Face{
+
+            private int[] indices = new int[3];
+
+            private Face(int a, int b, int c){
+                indices[0] = a;
+                indices[1] = b;
+                indices[2] = c;
+            }
+
+            public String toString(){
+
+                return indices[0]+", "+indices[1]+", "+indices[2];
+
             }
         }
 
-        return simplexnoise;
+
+
+        ArrayList<Face> triangles = new ArrayList<>();
+
+        for(int i = 0 ; i<rows ; i++){
+
+            for(int y = 0 ; y<columns ; y++){
+
+                int node = y+(i*vCW);
+
+                triangles.add(new Face(node,node+1,node+vCW));
+
+                //System.out.print(triangles.get(triangles.size()-1)+" , ");
+
+                triangles.add(new Face(node+1,node+1+vCW,node+vCW));
+
+                //System.out.print(triangles.get(triangles.size()-1)+" , ");
+            }
+
+            //System.out.println();
+
+        }
+
+        //System.out.println(triangles.size());
+
+
+        int[] faceI = new int[triangles.size()*3];
+
+        for(int i = 0,y=0;i<faceI.length;i+=3,y++){
+
+            int[] face = triangles.get(y).indices;
+
+            faceI[i]=face[0];
+            faceI[i+1]=face[1];
+            faceI[i+2]=face[2];
+
+        }
+
+        /*
+
+            GENERATE NORMALS
+
+        */
+
+        Vector3f[] normals = new Vector3f[rows*columns*2];
+
+        for(int i = 0,y=0; i<faceI.length;i+=3,y++){
+
+
+            Vector3f a = new Vector3f(positions[faceI[i]]);
+            Vector3f b = new Vector3f(positions[faceI[i+1]]);
+            Vector3f c = new Vector3f(positions[faceI[i+2]]);
+
+            b.sub(a);
+            c.sub(a);
+
+            b.cross(c);
+
+            b.normalize();
+
+            normals[y] = b;
+
+        }
+
+        return reorder(positions,normals,colors,faceI);
+
     }
+
 }

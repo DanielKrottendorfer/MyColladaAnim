@@ -29,8 +29,6 @@ public class Renderer {
 
     private ShaderProgram StaticShaderProgram;
     private ShaderProgram DynamicShaderProgram;
-    private ShaderProgram PlaneShaderProgram;
-
     private boolean b = true;
 
     public Renderer() {
@@ -60,15 +58,6 @@ public class Renderer {
         DynamicShaderProgram.createUniform("useColour");
 
 
-        // Create shader
-        PlaneShaderProgram = new ShaderProgram();
-        PlaneShaderProgram.createVertexShader(Utils.loadResource("/shaders/planeVertex.vs"));
-        PlaneShaderProgram.createFragmentShader(Utils.loadResource("/shaders/planeFragment.fs"));
-        PlaneShaderProgram.link();
-        
-        // Create uniforms for modelView and projection matrices and texture
-        PlaneShaderProgram.createUniform("projectionMatrix");
-        PlaneShaderProgram.createUniform("modelViewMatrix");
 
         // Create shader
         StaticShaderProgram = new ShaderProgram();
@@ -89,8 +78,7 @@ public class Renderer {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    public void render(Window window, Camera camera, GameItem[] gameItems,float elapsedTime) {
-        clear();
+    public void render(Window window, Camera camera, GameItem[] gameItems) {
 
         if ( window.isResized() ) {
             glViewport(0, 0, window.getWidth(), window.getHeight());
@@ -173,31 +161,6 @@ public class Renderer {
         }
 
         DynamicShaderProgram.unbind();
-
-        PlaneShaderProgram.bind();
-
-        // Update projection Matrix
-        PlaneShaderProgram.setUniform("projectionMatrix", projectionMatrix);
-
-
-        // Update view Matrix
-
-        // Render each gameItem
-        for(GameItem gameItem : gameItems) {
-            if(gameItem.isColored()){
-                Mesh mesh = gameItem.getMesh();
-                // Set model view matrix for this item
-                Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
-                PlaneShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
-                // Render the mesh for this game item
-
-
-                mesh.render();
-            }
-        }
-
-
-        PlaneShaderProgram.unbind();
 
     }
 

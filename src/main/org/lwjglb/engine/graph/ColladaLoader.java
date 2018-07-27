@@ -182,15 +182,15 @@ public class ColladaLoader {
          */
 
         String temp ;
-        temp = findChildByID(geometries,"Cube-mesh-positions-array").getValue();
+        temp = findChildByID(geometries,"mesh-positions-array").getValue();
         Vector4f[] vertecis = Vector4fArrayParser(temp.split(" "));
 
 
-        temp = findChildByID(geometries,"Cube-mesh-normals-array").getValue();
+        temp = findChildByID(geometries,"mesh-normals-array").getValue();
         Vector4f[] normals = Vector4fArrayParser(temp.split(" "));
 
 
-        temp = findChildByID(geometries,"Cube-mesh-map-0-array").getValue();
+        temp = findChildByID(geometries,"mesh-map-0-array").getValue();
         Vector2f[] uvMap = Vector2fArrayParser(temp.split(" "));
 
 

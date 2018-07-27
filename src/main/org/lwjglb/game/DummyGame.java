@@ -7,14 +7,11 @@ import static org.lwjgl.assimp.Assimp.aiImportFile;
 import static org.lwjgl.glfw.GLFW.*;
 
 import org.lwjgl.glfw.GLFW;
-import org.lwjglb.engine.GameItem;
-import org.lwjglb.engine.IGameLogic;
-import org.lwjglb.engine.MouseInput;
-import org.lwjglb.engine.Window;
+import org.lwjglb.engine.*;
 import org.lwjglb.engine.graph.*;
 import org.lwjglb.engine.graph.Animation.AnimatedModel;
-
-import java.rmi.MarshalException;
+import org.lwjglb.engine.graph.World.PlaneGenerator;
+import org.lwjglb.engine.graph.World.WorldMesh;
 
 public class DummyGame implements IGameLogic {
 
@@ -23,17 +20,22 @@ public class DummyGame implements IGameLogic {
     private final Vector3f cameraInc;
 
     private final Renderer renderer;
+    private final WorldRenderer worldRenderer;
 
     private final Camera camera;
 
     private GameItem[] gameItems;
+    private  WorldMesh world;
 
     private static final float CAMERA_POS_STEP = 0.05f;
 
     private GameItem gameItem2;
 
+    private static float speed = 1f;
+
     public DummyGame() {
         renderer = new Renderer();
+        worldRenderer = new WorldRenderer();
         camera = new Camera();
         cameraInc = new Vector3f(0, 0, 0);
     }
@@ -41,35 +43,35 @@ public class DummyGame implements IGameLogic {
     @Override
     public void init(Window window) throws Exception {
         renderer.init(window);
+        worldRenderer.init(window);
 
 
         //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlockTwistBend.dae");
         //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/DaRealBlock.dae");
-        AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning3Weights.dae");
+        //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning3Weights.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
-        //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/CharacterRunning.dae");
 
 
+        AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/cowboy3W.dae");
         mesh.stopAnimation();
-
         Texture texture = new Texture("/textures/diffuse.png");
-        //Texture texture = new Texture("/textures/diffuse.png");
-
         mesh.setTexture(texture);
-
-        Mesh plain = PlaneGenerator.generate(100f,100f,30, 30);
-
-        GameItem p = new GameItem(plain,true);
-        p.setScale(1);
-        p.setPosition(-50, -10, -50);
-
-
 
         GameItem gameItem = new GameItem(mesh);
         gameItem.setScale(0.5f);
         gameItem.setPosition(-1, -1, -2);
 
-        gameItems = new GameItem[]{gameItem,p};
+
+
+
+        world = new WorldMesh(cameraInc.x,cameraInc.y,10f,10,10,69,10);
+
+        gameItems = new GameItem[]{};
+
+
+
+
+
     }
 
 
@@ -84,28 +86,36 @@ public class DummyGame implements IGameLogic {
             }
         }
 
+        Vector3f r = camera.getRotation();
 
-        if(window.isKeyPressed(GLFW_KEY_T)){
-            Vector3f gp = gameItems[0].getPosition();
-            camera.setRotation(gp.x,gp.y,gp.z);
-
+        if(window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)){
+            speed = 3f;
+        }else {
+            speed = 1f;
         }
-
 
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            cameraInc.z = -5f;
+            cameraInc.z = -speed;
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
-            cameraInc.z = 5f;
+            cameraInc.z = speed;
         }
+
+        if (window.isKeyPressed(GLFW_KEY_Q)) {
+            camera.setRotation(r.x,r.y-2f,r.z);
+        } else if (window.isKeyPressed(GLFW_KEY_E)) {
+            camera.setRotation(r.x,r.y+2f,r.z);
+        }
+
         if (window.isKeyPressed(GLFW_KEY_A)) {
-            cameraInc.x = -5f;
+            cameraInc.x = -speed;
         } else if (window.isKeyPressed(GLFW_KEY_D)) {
-            cameraInc.x = 5f;
+            cameraInc.x = speed;
         }
+
         if (window.isKeyPressed(GLFW_KEY_Z)) {
-            cameraInc.y = -5f;
+            cameraInc.y = -speed;
         } else if (window.isKeyPressed(GLFW_KEY_X)) {
-            cameraInc.y = 5f;
+            cameraInc.y = speed;
         }
     }
 
@@ -127,8 +137,13 @@ public class DummyGame implements IGameLogic {
         }
     }
 
-    public void render(Window window,float elapsedTime) {
-        renderer.render(window, camera, gameItems,elapsedTime);
+    public void render(Window window) {
+
+
+        worldRenderer.render(window,camera,world);
+        renderer.render(window, camera, gameItems);
+
+
     }
 
     @Override

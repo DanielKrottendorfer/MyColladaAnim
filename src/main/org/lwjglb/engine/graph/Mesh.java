@@ -106,7 +106,6 @@ public class Mesh {
 
         }
 
-        System.out.print(Arrays.toString(color));
 
         FloatBuffer posBuffer = null;
         FloatBuffer colorBuffer = null;

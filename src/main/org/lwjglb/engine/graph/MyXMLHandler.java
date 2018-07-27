@@ -114,7 +114,6 @@ public class MyXMLHandler extends DefaultHandler {
     }
 
     public List<Vector3f> getVertecisV3f() {
-        System.out.println(vertecis);
         List<Vector3f> v3f= new ArrayList<>();
         for(int i=0;i<vertecis.size();i+=3){
             v3f.add(new Vector3f(vertecis.get(i),vertecis.get(i+1),vertecis.get(i+2)));

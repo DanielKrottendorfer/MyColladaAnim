@@ -89,7 +89,6 @@ public class MyOBJLoader {
         float[] vert = new float[vertices.size()*3];
         float[] tex = new float[textures.size()*2];
         float[] norm = new float[normals.size()*3];
-        System.out.println(norm.length);
         int[] indec = new int[indeces.size()];
          i=0;
 
@@ -118,7 +117,6 @@ public class MyOBJLoader {
             i++;
         }
 
-        i=0;
         /*
         for(int y=0,j=0;y< vert.length;y+=3,j+=2,i++) {
             System.out.println("Index :"+indec[i]);
@@ -168,10 +166,9 @@ public class MyOBJLoader {
                         indices, textCoordArr, normArr);
             }
         }
-        int[] indicesArr = new int[indices.size()];
+        int[] indicesArr;
         indicesArr = indices.stream().mapToInt((Integer v) -> v).toArray();
-        Mesh mesh = new Mesh(posArr, textCoordArr, normArr, indicesArr);
-        return mesh;
+        return new Mesh(posArr, textCoordArr, normArr, indicesArr);;
     }
 
     private static void processFaceVertex(IdxGroup indices, List<Vector2f> textCoordList,

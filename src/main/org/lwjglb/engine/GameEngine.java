@@ -56,15 +56,11 @@ public class GameEngine implements Runnable {
         float elapsedTime;
         float accumulator = 0f;
         float interval = 1f / TARGET_UPS;
-        float timecounter = 0;
         boolean running = true;
         while (running && !window.windowShouldClose()) {
 
             elapsedTime = timer.getElapsedTime();
             accumulator += elapsedTime;
-            timecounter += elapsedTime;
-            if(timecounter>Math.PI*2)
-                timecounter=0;
             input();
 
             while (accumulator >= interval) {
@@ -72,7 +68,7 @@ public class GameEngine implements Runnable {
                 accumulator -= interval;
             }
 
-            render(timecounter);
+            render();
 
             if ( !window.isvSync() ) {
                 sync();
@@ -104,8 +100,8 @@ public class GameEngine implements Runnable {
         gameLogic.update(interval, mouseInput);
     }
 
-    protected void render(float elapsedTime) {
-        gameLogic.render(window,elapsedTime);
+    protected void render() {
+        gameLogic.render(window);
         window.update();
     }
 }

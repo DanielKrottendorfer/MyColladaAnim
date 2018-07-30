@@ -7,9 +7,11 @@ import static org.lwjgl.assimp.Assimp.aiImportFile;
 import static org.lwjgl.glfw.GLFW.*;
 
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.odbc.SQL_YEAR_MONTH_STRUCT;
 import org.lwjglb.engine.*;
 import org.lwjglb.engine.graph.*;
 import org.lwjglb.engine.graph.Animation.AnimatedModel;
+import org.lwjglb.engine.graph.Wall.WallGenerator;
 import org.lwjglb.engine.graph.World.PlaneGenerator;
 import org.lwjglb.engine.graph.World.WorldMesh;
 
@@ -64,13 +66,31 @@ public class DummyGame implements IGameLogic {
 
 
 
-        world = new WorldMesh(cameraInc.x,cameraInc.y,10f,10,10,69,10);
-
-        gameItems = new GameItem[]{};
+        world = new WorldMesh(camera,50f,200,69,10);
 
 
 
+        AnimatedModel m = ColladaLoader.loadAnimatedModel("src/main/resources/models/cowboy3W.dae");
+        Texture t = new Texture("/textures/diffuse.png");
 
+        m.setTexture(t);
+        GameItem g = new GameItem(m);
+
+        g.setPosition(0,0,-10);
+        g.setScale(0.1f);
+
+        WallGenerator.generateSquareWall(1,1,1,100,100,20,10);
+
+
+        Mesh w = WallGenerator.generateSquareWall(-50,0,-50,100,100,20,20);
+
+        w.setColour( new Vector3f(0.5f,0.5f,0.5f));
+
+        GameItem gw = new GameItem(w);
+
+
+
+        gameItems = new GameItem[]{g,gw};
 
     }
 
@@ -135,10 +155,11 @@ public class DummyGame implements IGameLogic {
                 gi.getAnimatedModel().advanceAnimation(interval);
             }
         }
+
+
     }
 
     public void render(Window window) {
-
 
         worldRenderer.render(window,camera,world);
         renderer.render(window, camera, gameItems);
@@ -148,6 +169,7 @@ public class DummyGame implements IGameLogic {
 
     @Override
     public void cleanup() {
+        world.cleanUp();
         renderer.cleanup();
         for (GameItem gameItem : gameItems) {
             gameItem.getMesh().cleanUp();

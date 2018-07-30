@@ -28,6 +28,8 @@ public class Texture {
 
     private static int loadTexture(String fileName) throws Exception {
         // Load Texture file
+
+
         PNGDecoder decoder = new PNGDecoder(Texture.class.getResourceAsStream(fileName));
 
 

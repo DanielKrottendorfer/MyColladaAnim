@@ -1,65 +1,111 @@
 package org.lwjglb.engine.graph.World;
-
 import org.joml.Vector3f;
+import org.lwjgl.system.CallbackI;
 import org.lwjglb.engine.OpenSimplexNoise;
+import org.lwjglb.engine.graph.Camera;
 import org.lwjglb.engine.graph.Mesh;
 
-import java.util.ArrayList;
-import java.util.PrimitiveIterator;
 
 public class WorldMesh {
 
     private final double FEATURE_SIZE;
 
-    private final int vertecisPerTileSide;
-    private final int tilesPerSide;
+    private final float REPEAT_DISTANZE = 10f;
+
+    private float viewDistance;
 
     private final OpenSimplexNoise noise;
 
-
-    private float tileSize;
-
-    private Mesh[][] tiles;
+    private Camera camera;
 
 
-    public WorldMesh(float camPosX, float camPosY, float tileSize, int tilesPerSide, int verticesPerTileSide, long seed, int featursize) {
+    private Mesh plain;
 
-        this.FEATURE_SIZE = featursize;
-        this.vertecisPerTileSide = verticesPerTileSide;
-        this.tilesPerSide = tilesPerSide;
+    private WorldLoader wL;
 
+    private Thread wLT;
+
+    private int vertexCount;
+
+
+    public WorldMesh(Camera camera, float viewDistance, int vertexCount, long seed, int featureSize) {
+
+        this.camera=camera;
         this.noise = new OpenSimplexNoise(seed);
 
-        this.tiles = new Mesh[tilesPerSide][tilesPerSide];
+        this.FEATURE_SIZE = featureSize;
 
-        this.tileSize = tileSize;
+        this.vertexCount = vertexCount;
 
-        float viewDistance = tileSize*tilesPerSide/2;
+        Vector3f camPos = camera.getPosition();
 
-        float xStart = camPosX-viewDistance;
+        float xStart = camPos.x-viewDistance;
+        float zStart = camPos.z-viewDistance;
 
-        float yStart = camPosY-viewDistance;
+        plain = PlaneGenerator.generateNoisePlane(xStart,zStart,viewDistance*2,viewDistance*2,vertexCount,vertexCount,noise,FEATURE_SIZE);
 
-        for (int i = 0; i < tilesPerSide; i++) {
+        /*
+        wL = new WorldLoader(this);
 
-            float tempStrart = xStart;
+        wLT = new Thread(wL);
 
-            for (int y = 0; y < tilesPerSide; y++) {
+        wLT.start();
 
-                tiles[i][y] = PlaneGenerator.generateNoisePlane(tempStrart,yStart,tileSize,tileSize,verticesPerTileSide,verticesPerTileSide,noise,featursize);
+        */
 
-                tempStrart+=tileSize;
-
-            }
-            yStart+=tileSize;
-        }
     }
 
-    public Mesh[][] getTiles() {
-        return tiles;
+
+    public double getFEATURE_SIZE() {
+        return FEATURE_SIZE;
     }
 
-    public void setTiles(Mesh[][] tiles) {
-        this.tiles = tiles;
+    public OpenSimplexNoise getNoise() {
+        return noise;
     }
+
+    public Camera getCamera() {
+        return camera;
+    }
+
+    public void setCamera(Camera camera) {
+        this.camera = camera;
+    }
+
+    public float getViewDistance() {
+        return viewDistance;
+    }
+
+    public void setViewDistance(float viewDistance) {
+        this.viewDistance = viewDistance;
+    }
+
+    public Mesh getPlain() {
+        return plain;
+    }
+
+    public void setPlain(Mesh plain) {
+        this.plain = plain;
+    }
+
+    public int getVertexCount() {
+        return vertexCount;
+    }
+
+    public void setVertexCount(int vertexCount) {
+        this.vertexCount = vertexCount;
+    }
+
+    public float getREPEAT_DISTANZE() {
+        return REPEAT_DISTANZE;
+    }
+
+    public void cleanUp(){
+
+        //wL.stop();
+
+        plain.cleanUp();
+
+    }
+
 }

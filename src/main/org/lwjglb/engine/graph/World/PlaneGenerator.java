@@ -14,6 +14,8 @@ import static org.joml.SimplexNoise.noise;
 
 public class PlaneGenerator {
 
+    private static double MAX_DOUBEL = Double.MAX_VALUE/2;
+
 
     public static Mesh generateFlatPlane(float X,float Z,float length, float width, int vCL, int vCW, int featuresize) {
 
@@ -263,7 +265,7 @@ public class PlaneGenerator {
 
     }
 
-    public static Mesh generateNoisePlane(float X,float Z,float length, float width, int vCL, int vCW,OpenSimplexNoise noise, int featuresize) {
+    public static Mesh generateNoisePlane(float X,float Z,float length, float width, int vCL, int vCW,OpenSimplexNoise noise, double featuresize) {
 
         Vector3f[] positions = new Vector3f[vCL*vCW];
         Vector3f[] colors = new Vector3f[vCL*vCW];
@@ -293,23 +295,31 @@ public class PlaneGenerator {
 
             for(int y=0;y<vCW;y++){
 
-                float ns = (float) noise.eval((X+((float)i))/((float) featuresize),(Z+((float)y))/((float)featuresize),0);
+                float ns = (float) noise.eval(((X+wSeparation*i))/(featuresize),((Z+lSeparation*y))/(featuresize),0);
 
                 ns++;
                 ns/=2;
 
-                colors[(i*vCW)+y] = new Vector3f(ns,ns,ns);
+                colors[(i*vCW)+y] = hsvColorLerp(Color.GREEN,Color.RED,ns);
 
+                ns*=1.3;
+                ns*=ns;
+                ns*=ns;
+                ns*=ns;
+                ns*=ns;
 
-                ns*=5;
 
                 positions[(i*vCW)+y] = new Vector3f(X+wSeparation*i,ns,Z+lSeparation*y);
 
-                //System.out.print("y "+y+" "+positions[(y*vCL)+i]+" , ");
+                //System.out.print("y "+y+" "+positions[(i*vCW)+y]+" , ");
 
             }
 
         }
+        //System.out.println();
+
+
+        //System.out.println("a: "+positions[0]+" b: "+positions[vCW]+" c: "+positions[(vCW*vCL)-1]+" c: "+positions[(vCW*vCL)-1-vCW]);
         /*
 
             GENERATE INDICES

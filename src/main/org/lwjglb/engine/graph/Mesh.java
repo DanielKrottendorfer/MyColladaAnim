@@ -27,6 +27,9 @@ public class Mesh {
 
     private Vector3f colour;
 
+    boolean cleaning = false;
+
+
     public Mesh(float[] positions, float[] textCoords, float[] normals, int[] indices) {
 
         FloatBuffer posBuffer = null;
@@ -214,9 +217,7 @@ public class Mesh {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
-
         glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0);
-
         // Restore state
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
@@ -226,6 +227,8 @@ public class Mesh {
     }
 
     public void cleanUp() {
+
+
         glDisableVertexAttribArray(0);
 
         // Delete the VBOs
@@ -244,3 +247,4 @@ public class Mesh {
         glDeleteVertexArrays(vaoId);
     }
 }
+

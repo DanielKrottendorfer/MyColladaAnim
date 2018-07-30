@@ -202,7 +202,7 @@ public class ColladaLoader {
         return reorderStaticM(vertecis,normals,uvMap,faces,faceAttributes);
     }
 
-    private static Mesh reorderStaticM(Vector4f[] vertecis, Vector4f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes) {
+    public static Mesh reorderStaticM(Vector4f[] vertecis, Vector4f[] normals, Vector2f[] uvMap, int[] faces, int faceAttributes) {
 
         ArrayList<Float> v = new ArrayList<>();
         ArrayList<Float> n = new ArrayList<>();

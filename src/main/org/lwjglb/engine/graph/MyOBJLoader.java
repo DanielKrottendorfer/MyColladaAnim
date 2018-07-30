@@ -168,7 +168,7 @@ public class MyOBJLoader {
         }
         int[] indicesArr;
         indicesArr = indices.stream().mapToInt((Integer v) -> v).toArray();
-        return new Mesh(posArr, textCoordArr, normArr, indicesArr);;
+        return new Mesh(posArr, textCoordArr, normArr, indicesArr);
     }
 
     private static void processFaceVertex(IdxGroup indices, List<Vector2f> textCoordList,

@@ -74,23 +74,13 @@ public class WorldRenderer {
 
         // Render each gameItem
 
-        Mesh[][] tiles = world.getTiles();
+        Mesh plane = world.getPlain();
 
-        for(int i = 0; i<tiles.length;i++){
-
-            for(int y = 0;y<tiles[0].length;y++){
-
-                Mesh mesh = tiles[i][y];
-                // Set model view matrix for this item
-                ShaderProgram.setUniform("modelViewMatrix", viewMatrix);
-                // Render the mesh for this game item
-                mesh.render();
-                //System.out.println(mesh);
-
-            }
-
-        }
-
+        // Set model view matrix for this item
+        ShaderProgram.setUniform("modelViewMatrix", viewMatrix);
+        // Render the mesh for this game item
+        plane.render();
+        //System.out.println(mesh);
 
         ShaderProgram.unbind();
 

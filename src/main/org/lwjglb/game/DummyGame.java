@@ -11,6 +11,8 @@ import org.lwjgl.odbc.SQL_YEAR_MONTH_STRUCT;
 import org.lwjglb.engine.*;
 import org.lwjglb.engine.graph.*;
 import org.lwjglb.engine.graph.Animation.AnimatedModel;
+import org.lwjglb.engine.graph.Gyro.GyroListener;
+import org.lwjglb.engine.graph.Gyro.Gyroscope;
 import org.lwjglb.engine.graph.Wall.WallGenerator;
 import org.lwjglb.engine.graph.World.PlaneGenerator;
 import org.lwjglb.engine.graph.World.WorldMesh;
@@ -33,6 +35,9 @@ public class DummyGame implements IGameLogic {
 
     private GameItem gameItem2;
 
+    private Gyroscope gyro;
+    private GyroListener gl;
+
     private static float speed = 1f;
 
     public DummyGame() {
@@ -53,6 +58,13 @@ public class DummyGame implements IGameLogic {
         //AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/CharacterRunning3Weights.dae");
         //Mesh mesh = ColladaLoader.loadStaticMesh("src/main/resources/models/DaRealBlock.dae");
 
+        /*
+        gyro = new Gyroscope();
+
+        gl = new GyroListener(gyro);
+        Thread t = new Thread(gl);
+        t.start();
+        */
 
         AnimatedModel mesh = ColladaLoader.loadAnimatedModel("src/main/resources/models/cowboy3W.dae");
         mesh.stopAnimation();
@@ -61,23 +73,12 @@ public class DummyGame implements IGameLogic {
 
         GameItem gameItem = new GameItem(mesh);
         gameItem.setScale(0.5f);
-        gameItem.setPosition(-1, -1, -2);
+        gameItem.setPosition(-1, 1, -2);
 
 
 
 
         world = new WorldMesh(camera,50f,200,69,10);
-
-
-
-        AnimatedModel m = ColladaLoader.loadAnimatedModel("src/main/resources/models/cowboy3W.dae");
-        Texture t = new Texture("/textures/diffuse.png");
-
-        m.setTexture(t);
-        GameItem g = new GameItem(m);
-
-        g.setPosition(0,0,-10);
-        g.setScale(0.1f);
 
         WallGenerator.generateSquareWall(1,1,1,100,100,20,10);
 
@@ -90,7 +91,7 @@ public class DummyGame implements IGameLogic {
 
 
 
-        gameItems = new GameItem[]{g,gw};
+        gameItems = new GameItem[]{gameItem,gw};
 
     }
 
@@ -113,6 +114,20 @@ public class DummyGame implements IGameLogic {
         }else {
             speed = 1f;
         }
+
+        if (window.isKeyPressed(GLFW_KEY_B)) {
+            camera.setRotation(r.x-2f,r.y,r.z);
+        }
+        if (window.isKeyPressed(GLFW_KEY_N)) {
+            camera.setRotation(r.x,r.y-2f,r.z);
+        }
+        if (window.isKeyPressed(GLFW_KEY_M)) {
+            camera.setRotation(r.x,r.y,r.z-2f);
+        }
+
+
+        //camera.setRotation(gyro.getRx(),gyro.getRy(),gyro.getRz());
+
 
         if (window.isKeyPressed(GLFW_KEY_W)) {
             cameraInc.z = -speed;
@@ -171,6 +186,7 @@ public class DummyGame implements IGameLogic {
     public void cleanup() {
         world.cleanUp();
         renderer.cleanup();
+        gl.dispose();
         for (GameItem gameItem : gameItems) {
             gameItem.getMesh().cleanUp();
         }

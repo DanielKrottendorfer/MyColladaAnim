@@ -66,7 +66,7 @@ public class ColladaLoader {
 
         Joint rootJoint = buildHirachy(findChildByID(visual_scenes,"Armature"));
 
-        ArrayList<String> jointIndex = new ArrayList<>(Arrays.asList(findChildByID(controllers,"Armature_Cube-skin-joints-array").getValue().split(" ")));
+        ArrayList<String> jointIndex = new ArrayList<>(Arrays.asList(findChildByID(controllers,"skin-joints-array").getValue().split(" ")));
 
         addIndecis(rootJoint,jointIndex);
 
@@ -78,7 +78,7 @@ public class ColladaLoader {
 
         rootJoint.setJointC(joints.length);
 
-        temp = findChildByID(controllers,"Armature_Cube-skin-bind_poses-array").getValue();
+        temp = findChildByID(controllers,"skin-bind_poses-array").getValue();
 
         Matrix4f[] bindPos = Matrix4fArrayParser(temp.split(" "));
 
@@ -93,7 +93,7 @@ public class ColladaLoader {
                 LOAD  CONTROL DATA
          */
 
-        temp = findChildByID(controllers,"Armature_Cube-skin-weights-array").getValue();
+        temp = findChildByID(controllers,"skin-weights-array").getValue();
         float[] weights = floatArrayParser(temp.split(" "));
 
         temp = findChildByName(controllers,"vcount").getValue();
